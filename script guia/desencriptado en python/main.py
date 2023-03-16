@@ -28,8 +28,7 @@ def reSizer(binNum):
 
 
 def binaryToDecimal(binary):
-    binary1 = binary
-    decimal, i, n = 0, 0, 0
+    decimal, i = 0, 0
     while (binary != 0):
         dec = binary % 10
         decimal = decimal + dec * pow(2, i)
@@ -43,8 +42,12 @@ def denCrypter(pic, d, n):
     dencryptedPic = []
     while i+1 < len(pic):
         a = reSizer("{0:b}".format(pic[i]))
+        print(a)
         b = reSizer("{0:b}".format(pic[i+1]))
+        print(b)
         c = binaryToDecimal(int(a+b))
+        print(a+b)
+        print(c)
         dencryptedPic.append(pow(c, d) % n)
         i += 2
     return dencryptedPic
@@ -54,14 +57,16 @@ def main():
     # salida 640x480
     d = 1631
     n = 5963
-    path = "./5.txt"
-    ecryptedPic = fileReader(path)
-    ecryptedPic = toList(ecryptedPic)
-    dencryptedPic = denCrypter(ecryptedPic, d, n)
-    pic = Image.new('L', (320, 320))
-    pic.putdata(dencryptedPic)
-    pic.save("test.png")
-    pic.close()
+    pic = [20, 104]
+    print(denCrypter(pic,d,n))
+    # path = "./5.txt"
+    # ecryptedPic = fileReader(path)
+    # ecryptedPic = toList(ecryptedPic)
+    # dencryptedPic = denCrypter(ecryptedPic, d, n)
+    # pic = Image.new('L', (320, 320))
+    # pic.putdata(dencryptedPic)
+    # pic.save("test.png")
+    # pic.close()
 
 
 if __name__ == "__main__":
