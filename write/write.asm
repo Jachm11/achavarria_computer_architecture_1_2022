@@ -31,15 +31,15 @@ S_IWUSR equ 00200q
 S_IXUSR equ 00100q
 
 
-BUFF_SIZE    equ 255 
+BUFF_SIZE    equ 6 
 
 NULL equ 0 ; end of string
 
 ; -----
 ; Provided Data
 filename  db "test.txt", NULL
-text  db "This is a write test"
-str_buffer db 3 dup (0) 
+text  dd 1, 222, 34, 88, 23, 123, 3 
+str_buffer db 4 dup (0) 
 file_desc dq 0
 
 
@@ -56,7 +56,7 @@ read_buffer resb BUFF_SIZE
 section .text
 
 global _start
-    _start:
+_start:
     ; -----
     ; Create the file
     create_file:
@@ -71,30 +71,39 @@ global _start
     ; Write the file
     write_file:
 
-        write_next_number:
-            mov rdi, 23        
-            call _int_to_str
-            mov rdx, 4         ;We'll write 4 characters
-            cmp rdi, 100
-            jae write_number
-            mov rdx, 3         ;We'll write 3 characters
-            cmp rdi, 10
-            jae write_number
-            mov rdx, 2        ;We'll write 2 characters
+        mov rbx, text
+        mov rcx, BUFF_SIZE
 
-            ; -----
-            ; Write the number
-            write_number:
-                mov rax, SYS_WRITE
-                mov rdi, qword [file_desc]
-                mov rsi, str_buffer
-                syscall
-    
+        write_loop:
+        mov rdx, [rbx]
+        xor rdi, rdi
+        mov dil, dl
+        push rcx
+        call _int_to_str
+        mov rdx, 4         ;We'll write 4 characters
+        cmp rdi, 100
+        jae write_number
+        mov rdx, 3         ;We'll write 3 characters
+        cmp rdi, 10
+        jae write_number
+        mov rdx, 2        ;We'll write 2 characters
+
+        ; -----
+        ; Write the number
+        write_number:
+            mov rax, SYS_WRITE
+            mov rdi, qword [file_desc]
+            mov rsi, str_buffer
+            syscall
+        pop rcx
+        add rbx, 4
+        loop write_loop    
     ; -----
     ; Close the file
-    mov rax, SYS_CLOSE
-    mov rdi, qword [file_desc]
-    syscall
+    close_file:
+        mov rax, SYS_CLOSE
+        mov rdi, qword [file_desc]
+        syscall
 
     ; -----
     ; Exit program
@@ -128,7 +137,7 @@ _int_to_str:
     next_digit:
         pop ax
         add al, '0'         ; convert to ASCII
-        mov [rsi], al        ; write it to the buffer
+        mov [rsi], al       ; write it to the buffer
         inc si
         loop next_digit
 
