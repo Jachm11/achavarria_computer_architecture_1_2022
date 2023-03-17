@@ -61,14 +61,13 @@ global _start
     read_file:
         mov rdi, qword [file_desc]
         mov rsi, read_buffer
-        mov rdx, 1     ; read one byte at a time
         xor rbx, rbx   ; temp_buffer
         mov r10, 10
 
 
         read_char:
             mov rax, SYS_READ
-            mov rdx, 1     ; read one byte at a time
+            mov rdx, 1             ; read one byte at a time
             syscall                ; read char goes to [rsi]
             cmp rax, 0             ; check if end of file has been reached
             je end_read            ; jump to end_read if end of file is reached
