@@ -83,18 +83,13 @@ global _start
             jmp read_char
 
             save_value:
-                mov [rsi], rbx
-                add rsi, 4  ; point to next address
+                mov [rsi], rbx ; save value
+                add rsi, 4     ; point to next address
+                xor rbx, rbx
                 jmp read_char
 
         end_read:
-        ; -----
-        ; Print the buffer.
-        ; add the NULL for the print string
-        mov rsi, read_buffer
-        mov byte [rsi+rax], NULL
-        mov rdi, read_buffer
-        call print
+        mov [rsi], rbx ;Save last value
 
     ; -----
     ; Exit program
