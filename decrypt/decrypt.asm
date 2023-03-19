@@ -30,8 +30,8 @@ section .data
     S_IRUSR      equ 00400q
     S_IWUSR      equ 00200q
 
-    INPUT_IMG_SIZE  equ 21         ; size of the input image
-    OUTPUT_IMG_SIZE equ 21         ; size of the output image
+    INPUT_IMG_SIZE  equ 12         ; size of the input image
+    OUTPUT_IMG_SIZE equ 6         ; size of the output image
 
     NULL equ 0                         ; end of string
 
@@ -40,6 +40,8 @@ section .data
     input_file   db "input.txt",  NULL ; name of the input txt file
     output_file  db "output.txt", NULL ; name of the output txt file
     key_file     db "key.txt", NULL    ; name of the key txt file
+
+    decrypted_counter db 0             ; different pixels that have been decrypted 
 
 ; -----
 ; Define variables
@@ -51,8 +53,10 @@ section .data
 ; Uninitialized data
 section .bss
     img_buffer         resd INPUT_IMG_SIZE ; buffer to hold file read data
-    description_buffer resd 255            ; buffer to hold the decryped data
     key_buffer         resd 2              ; buufer to hold the private key
+    power_buffer    resd 17             ; buffer to hold the exponent data
+    decryption_table   resd 255            ; table to hold the decrypted code for quick access
+
 ; -------------------------------------------------
 
 ; -------------------------------------------------
@@ -62,16 +66,22 @@ section .text
 global _start
 _start:
 
-    mov rdi, input_file        ; file name string 
-    mov rsi, img_buffer        ; set the buffer to store the read data
+    mov rdi, input_file           ; file name string 
+    mov rsi, img_buffer           ; set the buffer to store the read data
     call _input
 
-    mov rdi, key_file          ; file name string 
-    mov rsi, key_buffer        ; set the buffer to store the read data
+    mov rdi, key_file             ; file name string 
+    mov rsi, key_buffer           ; set the buffer to store the read data
     call _input
+
+    xor rdi, rdi
+    xor rsi, rsi
+    mov di, word [key_buffer]     ; d
+    mov si, word [key_buffer + 4] ; n
+    mov rdx, img_buffer           ; set the buffer to read the from data
+    call _decrypt                 ; (note: to optimize decrypted data will be store there as well)
     
     call _output
-
 
     ; -----
     ; Exit program
@@ -141,10 +151,94 @@ _input:
 ret                            ; return from the function
 
 ; Decrypt RSA data
-; Arg 1: Private key
-; Arg 2: Memory address of data
+; Arg 1: Private key (d)
+; Arg 2: Private key (n)
+; Arg 3: Memory address of data (read and store)
 global _decrypt
 _decrypt:
+
+    ; Load encrypted number
+    xor rcx, rcx             ; clear any thrash
+    mov cl,  byte [rdx]      ; load MSB byte
+    shl rcx, 8               ; shift it 
+    mov r8b, byte [rdx+4]    ; load LSB byte
+    add rcx, r8              ; add it to the MSB
+
+
+    ; xor rcx, rcx ;DEBUG
+    ; mov rcx, 3   ;DEBUG
+
+    ;buscar en tabla
+
+    ; Prepare for decryption
+
+    xor rax, rax             ; clear any thrash
+    mov r9, 1               ; power of 2 counter
+    mov r10, power_buffer ; address to save the mod results
+
+    ; c^d mod n
+    ;rcx^rdi mod rsi
+    ; Calculate first mod
+    mov rax, rcx
+    cmp ax,si
+    jb dont_divide           ; **** 
+    div si
+    store_first:
+    mov [r10], rdx ; store remainder in memory
+    shl r9, 1
+    cmp r9, rdi
+    ja add_exp
+    jmp mod_loop
+
+    dont_divide:
+    mov rdx, rax
+    jmp store_first
+
+    ; Calculate the rest
+    mod_loop:
+        mov rax, [r10]
+        mul qword[r10]
+        div si
+        add r10, 4
+        mov [r10], rdx ; store remainder in memory
+
+        shl r9, 1
+        cmp r9, rdi
+    jbe mod_loop
+
+    add_exp:
+    mov r10, power_buffer    ; address to the mod results
+    mov r9, 1                ; power of 2 mask
+    xor r8, r8               ; power address counter           
+    mov rax, 1             ; result buffer
+    add_loop:
+        mov rcx, rdi
+        and cx, r9w
+        shl r9, 1
+        cmp cx, 0
+    je dont_add
+        mov r11w, word [r10+r8]
+        mul r11w
+        add r8, 4
+        cmp r9, rdi
+    jb add_loop
+    jmp final_div
+
+    dont_add:
+    add r8, 4
+    cmp r9, rdi
+    jb add_loop
+
+    final_div:
+    div rsi
+    ;rdx is 105
+
+
+    ; ciclo con mask or
+
+
+ret
+    
 
 
 ; Create a space-separated txt file from array of integers in memory
@@ -154,6 +248,7 @@ _output:
     ; Create the file
     create_file:
     mov rax, SYS_CREATE            ; set rax to call code for file open/create
+    mov rdi, output_file           ; set rdi to output_file string
     mov rsi, S_IRUSR | S_IWUSR     ; set rsi to permissions for read/write
     syscall                        ; call kernel to open/create file
 
