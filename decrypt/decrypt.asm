@@ -41,7 +41,7 @@ section .data
     output_file  db "output.txt", NULL ; name of the output txt file
     key_file     db "key.txt", NULL    ; name of the key txt file
 
-    decrypted_counter db 0             ; different pixels that have been decrypted 
+    decrypted_counter dq 0             ; different pixels that have been decrypted 
 
 ; -----
 ; Define variables
@@ -54,7 +54,6 @@ section .data
 section .bss
     img_buffer         resd INPUT_IMG_SIZE ; buffer to hold file read data
     key_buffer         resd 2              ; buufer to hold the private key
-    power_buffer    resd 17             ; buffer to hold the exponent data
     decryption_table   resd 255            ; table to hold the decrypted code for quick access
 
 ; -------------------------------------------------
@@ -79,7 +78,14 @@ _start:
     mov di, word [key_buffer]     ; d
     mov si, word [key_buffer + 4] ; n
     mov rdx, img_buffer           ; set the buffer to read the from data
-    call _decrypt                 ; (note: to optimize decrypted data will be store there as well)
+    call _decrypt
+
+    xor rdi, rdi
+    xor rsi, rsi
+    mov di, word [key_buffer]     ; d
+    mov si, word [key_buffer + 4] ; n
+    mov rdx, img_buffer           ; set the buffer to read the from data
+    call _decrypt                 
     
     call _output
 
@@ -153,7 +159,7 @@ ret                            ; return from the function
 ; Decrypt RSA data
 ; Arg 1: Private key (d)
 ; Arg 2: Private key (n)
-; Arg 3: Memory address of data (read and store)
+; Arg 3: Memory address of data (read)
 global _decrypt
 _decrypt:
 
@@ -163,83 +169,37 @@ _decrypt:
     shl rcx, 8               ; shift it 
     mov r8b, byte [rdx+4]    ; load LSB byte
     add rcx, r8              ; add it to the MSB
-
-
-    ; xor rcx, rcx ;DEBUG
-    ; mov rcx, 3   ;DEBUG
-
-    ;buscar en tabla
-
-    ; Prepare for decryption
-
-    xor rax, rax             ; clear any thrash
-    mov r9, 1               ; power of 2 counter
-    mov r10, power_buffer ; address to save the mod results
-
-    ; c^d mod n
-    ;rcx^rdi mod rsi
-    ; Calculate first mod
-    mov rax, rcx
-    cmp ax,si
-    jb dont_divide           ; **** 
-    div si
-    store_first:
-    mov [r10], rdx ; store remainder in memory
-    shl r9, 1
-    cmp r9, rdi
-    ja add_exp
-    jmp mod_loop
-
-    dont_divide:
-    mov rdx, rax
-    jmp store_first
-
-    ; Calculate the rest
-    mod_loop:
-        mov rax, [r10]
-        mul qword[r10]
-        div si
-        add r10, 4
-        mov [r10], rdx ; store remainder in memory
-
-        shl r9, 1
-        cmp r9, rdi
-    jbe mod_loop
-
-    add_exp:
-    mov r10, power_buffer    ; address to the mod results
-    mov r9, 1                ; power of 2 mask
-    xor r8, r8               ; power address counter           
-    mov rax, 1             ; result buffer
-    add_loop:
-        mov rcx, rdi
-        and cx, r9w
-        shl r9, 1
-        cmp cx, 0
-    je dont_add
-        mov r11w, word [r10+r8]
-        mul r11w
-        add r8, 4
-        cmp r9, rdi
-    jb add_loop
-    jmp final_div
-
-    dont_add:
-    add r8, 4
-    cmp r9, rdi
-    jb add_loop
-
-    final_div:
-    div rsi
-    ;rdx is 105
-
-
-    ; ciclo con mask or
-
-
-ret
     
+    ; c^d mod n
+    ; rax = rcx^rdi mod rsi
+    start_decrypt:
+    xor rax, rax      
+    mov rax, 1
+    push rcx
+    decrypt_loop:
+        mov r8, rdi
+        and r8, 1
+        cmp r8, 0
+        je next_bit
+        mul rcx
+        div rsi
+        mov rax, rdx
+        next_bit:
+        shr rdi, 1
+        cmp rdi, 0
+        je store_decode
+        push rax
+        mov rax, rcx
+        mul rcx
+        div rsi
+        mov rcx, rdx
+        pop rax
+    jmp decrypt_loop
 
+    store_decode:
+  
+    decoded:
+    ret
 
 ; Create a space-separated txt file from array of integers in memory
 global _output
@@ -292,7 +252,6 @@ _output:
     mov rdi, qword [file_desc]     ; file descriptor to close
     syscall                        ; call the kernel to close to the file
 ret                                ; return from the function
-
 
 ; Convert integer to string
 _int_to_str:
