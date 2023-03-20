@@ -57,7 +57,7 @@ def main():
     # salida 640x480
     d = 1631
     n = 5963
-    pic = [20, 104]
+    pic = [7, 180]
     print(denCrypter(pic,d,n))
     # path = "./5.txt"
     # ecryptedPic = fileReader(path)
