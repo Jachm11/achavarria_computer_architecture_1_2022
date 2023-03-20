@@ -78,14 +78,7 @@ _start:
     mov di, word [key_buffer]     ; d
     mov si, word [key_buffer + 4] ; n
     mov rdx, img_buffer           ; set the buffer to read the from data
-    call _decrypt
-
-    xor rdi, rdi
-    xor rsi, rsi
-    mov di, word [key_buffer]     ; d
-    mov si, word [key_buffer + 4] ; n
-    mov rdx, img_buffer           ; set the buffer to read the from data
-    call _decrypt                 
+    call _decrypt              
     
     call _output
 
@@ -169,6 +162,22 @@ _decrypt:
     shl rcx, 8               ; shift it 
     mov r8b, byte [rdx+4]    ; load LSB byte
     add rcx, r8              ; add it to the MSB
+
+    ;buscar en tabla
+    mov rax, decryption_table
+    xor r9, r9
+    search_loop:
+        add r9, 4
+        cmp r9b, [decrypted_counter]
+        ja start_decrypt
+        mov dx, word[rax]
+        add rax, 4
+        cmp cx, dx
+    jne search_loop
+    sub rax, 4
+    mov rax, [rax]
+    shr rax, 16
+    jmp decoded
     
     ; c^d mod n
     ; rax = rcx^rdi mod rsi
@@ -196,8 +205,17 @@ _decrypt:
         pop rax
     jmp decrypt_loop
 
+
     store_decode:
-  
+    mov rdi, rax
+    shl rdi, 16
+    pop rcx
+    add rdi, rcx
+    mov rsi, decryption_table
+    add rsi, [decrypted_counter]
+    mov [rsi], rdi
+    add qword [decrypted_counter], 4
+     
     decoded:
     ret
 
