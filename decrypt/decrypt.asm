@@ -30,8 +30,13 @@ section .data
     S_IRUSR      equ 00400q
     S_IWUSR      equ 00200q
 
-    INPUT_IMG_SIZE  equ 12         ; size of the input image
-    OUTPUT_IMG_SIZE equ 6         ; size of the output image
+    ; 640x480
+    ; INPUT_IMG_SIZE  equ 614400          ; size of the input image
+    ; OUTPUT_IMG_SIZE equ 307200          ; size of the output image
+
+    ; 320x320
+    INPUT_IMG_SIZE  equ 204800          ; size of the input image
+    OUTPUT_IMG_SIZE equ 102400          ; size of the output image
 
     NULL equ 0                         ; end of string
 
@@ -52,9 +57,9 @@ section .data
 ; -------------------------------------------------
 ; Uninitialized data
 section .bss
-    img_buffer         resd INPUT_IMG_SIZE ; buffer to hold file read data
-    key_buffer         resd 2              ; buufer to hold the private key
-    decryption_table   resd 255            ; table to hold the decrypted code for quick access
+    img_buffer         resq INPUT_IMG_SIZE ; buffer to hold file read data
+    key_buffer         resd 2              ; buffer to hold the private key
+    decryption_table   resq 255            ; table to hold the decrypted code for quick access
 
 ; -------------------------------------------------
 
@@ -73,13 +78,28 @@ _start:
     mov rsi, key_buffer           ; set the buffer to store the read data
     call _input
 
-    xor rdi, rdi
-    xor rsi, rsi
-    mov di, word [key_buffer]     ; d
-    mov si, word [key_buffer + 4] ; n
-    mov rdx, img_buffer           ; set the buffer to read the from data
-    call _decrypt              
-    
+    xor r13, r13
+    xor r14, r14
+    mov r13w, word [key_buffer]     ; d
+    mov r14w, word [key_buffer + 4] ; n
+    mov rbx, img_buffer           ; set the buffer to read the data from
+    mov r12, rbx
+    mov rcx, INPUT_IMG_SIZE
+
+    decrypt_file:
+        mov rdx, rbx
+        xor rdi, rdi
+        xor rsi, rsi
+        mov di, r13w 
+        mov si, r14w
+        push rcx
+        call _decrypt
+        pop rcx
+        mov [r12], rax
+        add rbx, 8
+        add r12, 4
+    loop decrypt_file
+
     call _output
 
     ; -----
@@ -168,7 +188,7 @@ _decrypt:
     xor r9, r9
     search_loop:
         add r9, 4
-        cmp r9b, [decrypted_counter]
+        cmp r9, [decrypted_counter]
         ja start_decrypt
         mov dx, word[rax]
         add rax, 4
@@ -217,7 +237,7 @@ _decrypt:
     add qword [decrypted_counter], 4
      
     decoded:
-    ret
+ret
 
 ; Create a space-separated txt file from array of integers in memory
 global _output
@@ -236,7 +256,7 @@ _output:
     ; Write the file
     write_file:
     mov rbx, img_buffer            ; set rbx to beginning of integer array
-    mov rcx, INPUT_IMG_SIZE        ; set rcx to buffer size
+    mov rcx, OUTPUT_IMG_SIZE       ; set rcx to buffer size
 
     write_loop:
         mov rdx, [rbx]             ; set rdx to current integer in array
