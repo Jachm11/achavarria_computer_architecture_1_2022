@@ -3,6 +3,9 @@
 ; translates them from ASCII into integer and writes them on memory.
 ; Then it read that memory and performs the inverse process writing then into 
 ; output txt file, each separated by a space
+; 
+; Author: Jose Alejandro Chavarria Madriz
+; Email: joalchama@gmail.com
 ; ---------------------------------------------------------------------------
 
 ; -------------------------------------------------
@@ -70,52 +73,68 @@ section .text
 global _start
 _start:
 
-    mov rdi, input_file           ; file name string 
-    mov rsi, img_buffer           ; set the buffer to store the read data
-    call _input
+    ; -----
+    ; Read input file into memory buffer
+    mov rdi, input_file             ; file name string 
+    mov rsi, img_buffer             ; set the buffer to store the read data
+    call _input                     ; call _input function to read the file
 
-    mov rdi, key_file             ; file name string 
-    mov rsi, key_buffer           ; set the buffer to store the read data
-    call _input
+    ; -----
+    ; Read private key file into memory buffer
+    mov rdi, key_file               ; file name string 
+    mov rsi, key_buffer             ; set the buffer to store the read data
+    call _input                     ; call _input function to read the file
 
-    xor r13, r13
-    xor r14, r14
-    mov r13w, word [key_buffer]     ; d
-    mov r14w, word [key_buffer + 4] ; n
-    mov rbx, img_buffer           ; set the buffer to read the data from
-    mov r12, rbx
-    mov rcx, INPUT_IMG_SIZE
+    ; -----
+    ; Load private key (d, n) into registers
+    xor r13, r13                    ; clear any thrash in r13
+    xor r14, r14                    ; clear any thrash in r14
+    mov r13w, word [key_buffer]     ; load private key (d)
+    mov r14w, word [key_buffer + 4] ; load private key (n)
 
-    decrypt_file:
+    ; Load image buffer address into rbx and r12
+    mov rbx, img_buffer             ; set the buffer to read the data from
+    mov r12, rbx                    ; r12 has a copy of the address
+
+    ; Decrypt the data in the buffer in 8-byte chunks
+    mov rcx, INPUT_IMG_SIZE         ; set the loop counter to image size in bytes
+
+    decrypt_image:
+        ; Load the current 8-byte chunk to be decrypted into rdx
         mov rdx, rbx
-        xor rdi, rdi
-        xor rsi, rsi
-        mov di, r13w 
-        mov si, r14w
-        push rcx
-        call _decrypt
-        pop rcx
-        mov [r12], rax
-        add rbx, 8
-        add r12, 4
-    loop decrypt_file
 
-    call _output
+        ; Call the _decrypt function with arguments d, n, and the current 8-byte chunk
+        xor rdi, rdi                ; clear any thrash in rdi
+        xor rsi, rsi                ; clear any thrash in rsi
+        mov di, r13w                ; pass d as the first argument
+        mov si, r14w                ; pass n as the second argument
+        push rcx                    ; save rcx on stack
+        call _decrypt               ; call _decrypt function to decrypt the data
+        pop rcx                     ; restore rcx from stack
+
+        ; Store the decrypted 4-byte chunk to r12
+        mov [r12], rax
+        add rbx, 8                  ; advance the read pointer by 8 bytes
+        add r12, 4                  ; advance the write pointer by 4 bytes
+
+    loop decrypt_image               ; continue looping while rcx is not zero
+
+    ; -----
+    ; Write the decrypted data to output file
+    call _output                    ; call _output function to write the data
 
     ; -----
     ; Exit program
     end:
-    mov rax, SYS_EXIT      ; system call number for exit
-    mov rdi, EXIT_SUCCESS  ; set the exit status as success
-    syscall                ; call the kernel to exit
+    mov rax, SYS_EXIT               ; system call number for exit
+    mov rdi, EXIT_SUCCESS           ; set the exit status as success
+    syscall                         ; call the kernel to exit
 
 ; Parse space-separated numeric file and load them a integer array to memory
 ; Arg 1: Name of the file
 ; Arg 2: Address to store to
 global _input
 _input:
-    ; -----
-    ; Callee saved registers
 
     ; -----
     ; Open file
@@ -177,67 +196,75 @@ global _decrypt
 _decrypt:
 
     ; Load encrypted number
+    ; The encrypted number is stored at the memory address given in the third argument
+    ; It consists of two bytes, the most significant byte (MSB) at offset 0 and the least significant byte (LSB) at offset 4
     xor rcx, rcx             ; clear any thrash
     mov cl,  byte [rdx]      ; load MSB byte
     shl rcx, 8               ; shift it 
     mov r8b, byte [rdx+4]    ; load LSB byte
     add rcx, r8              ; add it to the MSB
 
-    ;buscar en tabla
+    ; Search decryption table
+    ; A table is used to store previously decrypted values
+    ; This loop searches for the encrypted value in the table
+    ; If found, the corresponding decrypted value is returned
     mov rax, decryption_table
     xor r9, r9
     search_loop:
-        add r9, 4
-        cmp r9, [decrypted_counter]
-        ja start_decrypt
-        mov dx, word[rax]
-        add rax, 4
-        cmp cx, dx
-    jne search_loop
-    sub rax, 4
-    mov rax, [rax]
-    shr rax, 16
-    jmp decoded
+        add r9, 4                    ; increment the index of the table entry being checked
+        cmp r9, [decrypted_counter]  ; compare the index to the number of entries in the table
+        ja start_decrypt             ; if the index is greater than the number of entries, the value needs to be decrypted
+        mov dx, word[rax]            ; load the encrypted value from the current entry
+        add rax, 4                   ; increment the pointer to the next entry in the table
+        cmp cx, dx                   ; compare the encrypted value to the input value
+    jne search_loop                  ; if the values don't match, keep searching
+    sub rax, 4                       ; if the encrypted value is found in the table, go back one entry to get the corresponding decrypted value
+    mov rax, [rax]                   ; load the decrypted value
+    shr rax, 16                      ; shift the value right by 16 bits to get rid of the padding
+    jmp decoded                      ; jump to the end of the function to return the decrypted value
     
+    ; If the encrypted value is not found in the table, it needs to be decrypted using the private key
+    ; The following loop performs the modular exponentiation algorithm to decrypt the value
     ; c^d mod n
     ; rax = rcx^rdi mod rsi
     start_decrypt:
-    xor rax, rax      
-    mov rax, 1
-    push rcx
+    xor rax, rax                     ; clear rax (accumulator)
+    mov rax, 1                       ; initialize rax to 1
+    push rcx                         ; push rcx (the encrypted value) onto the stack
     decrypt_loop:
-        mov r8, rdi
-        and r8, 1
-        cmp r8, 0
-        je next_bit
-        mul rcx
-        div rsi
-        mov rax, rdx
+        mov r8, rdi                  ; copy rdi (the private key exponent) to r8
+        and r8, 1                    ; check the least significant bit of r8
+        cmp r8, 0                    ; compare to zero
+        je next_bit                  ; if r8 is 0, skip the that power of 2
+        mul rcx                      ; multiply rax by rcx.
+        div rsi                      ; divide by n to get the remainder.
+        mov rax, rdx                 ; move the remainder to rax.
         next_bit:
-        shr rdi, 1
-        cmp rdi, 0
-        je store_decode
-        push rax
-        mov rax, rcx
-        mul rcx
-        div rsi
-        mov rcx, rdx
-        pop rax
-    jmp decrypt_loop
+        shr rdi, 1                   ; shift the private key exponent right by one bit.
+        cmp rdi, 0                   ; check if the private key exponent is zero.
+        je store_decode              ; if it's 0, jump to store_decode
+        push rax                     ; push the current value of rax to the stack
+        mov rax, rcx                 ; move the value of rcx to rax
+        mul rcx                      ; multiply rax by rcx
+        div rsi                      ; divide the result by rsi
+        mov rcx, rdx                 ; move the remainder to rcx (the result of multiplying rcx with rax)
+        pop rax                      ; pop the previous value of rax from the stack
+    jmp decrypt_loop                 ; jump back to decrypt_loop and repeat the process with the next bit
 
-
+    ; Store the decoded number
+    ; Both the encrypted number and its decryption are strored on the same memory address
     store_decode:
-    mov rdi, rax
-    shl rdi, 16
-    pop rcx
-    add rdi, rcx
-    mov rsi, decryption_table
-    add rsi, [decrypted_counter]
-    mov [rsi], rdi
-    add qword [decrypted_counter], 4
-     
+    mov rdi, rax                     ; move the decoded number to rdi
+    shl rdi, 16                      ; shift left by 16 bits
+    pop rcx                          ; pop the original encrypted number from the stack
+    add rdi, rcx                     ; add the original encrypted number to rdi
+    mov rsi, decryption_table        ; move the address of decryption_table to rsi
+    add rsi, [decrypted_counter]     ; add the decrypted_counter to the address of decryption_table
+    mov [rsi], rdi                   ; store the decoded number at the current index of decryption_table
+    add qword [decrypted_counter], 4 ; increment the decrypted_counter by 4 bytes (since we are using it as addressing offset too)
+
     decoded:
-ret
+ret                                  ; Return from the function, the decoded number is now stored in decryption_table, and the result in rax
 
 ; Create a space-separated txt file from array of integers in memory
 global _output
