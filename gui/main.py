@@ -1,13 +1,23 @@
 import tkinter as tk
 from PIL import ImageTk, Image
 from tkinter import filedialog
+import subprocess
+
+def run_program():
+    result = subprocess.run("./x86", capture_output=True)
+    if result.returncode == 0:
+        print("Program finished successfully")
+        print("Program output:", result.stdout)
+    else:
+        print("Program failed with error code", result.returncode)
+        print("Program error message:", result.stderr)
 
 
 def txt_to_png(txt_file, width, height, output_file):
     # Open the text file and read the grayscale values
     with open(txt_file, 'r') as f:
         grayscale_values = f.read().split(" ")
-        if (grayscale_values[0] == " "):
+        if (f.name == "output.txt"):
             grayscale_values = grayscale_values[1:]
 
     # Create a new image with the specified width and height
@@ -50,6 +60,9 @@ def open_image():
 
 def decode_image():
     global tk_img_decrypt
+
+    run_program()
+
     txt_to_png('output.txt', 320, 320, 'output.png')
     image = Image.open('output.png')
     # image = image.resize((400, 400))  # Resize the image
