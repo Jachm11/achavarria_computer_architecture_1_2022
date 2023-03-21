@@ -1,8 +1,11 @@
 ; ---------------------------------------------------------------------------
-; This program read from a file a series of integer numbers of up to 3 digits
+; This program reads from a file a series of integer numbers of up to 3 digits
+; this are meant to be the RSA encrypted pixels of an image. It 
 ; translates them from ASCII into integer and writes them on memory.
-; Then it read that memory and performs the inverse process writing then into 
-; output txt file, each separated by a space
+; Then performs a RSA decryption algorithm with a key given on a diffent file.
+; The results are stored into memory.
+; Then it reads that memory and performs the inverse process, that is writing them into 
+; a output txt file, each pixel value separated by a space.
 ; 
 ; Author: Jose Alejandro Chavarria Madriz
 ; Email: joalchama@gmail.com
@@ -34,12 +37,12 @@ section .data
     S_IWUSR      equ 00200q
 
     ; 640x480
-    ; INPUT_IMG_SIZE  equ 614400          ; size of the input image
-    ; OUTPUT_IMG_SIZE equ 307200          ; size of the output image
+    INPUT_IMG_SIZE  equ 614400          ; size of the input image
+    OUTPUT_IMG_SIZE equ 307200          ; size of the output image
 
     ; 320x320
-    INPUT_IMG_SIZE  equ 204800          ; size of the input image
-    OUTPUT_IMG_SIZE equ 102400          ; size of the output image
+    ; INPUT_IMG_SIZE  equ 204800          ; size of the input image
+    ; OUTPUT_IMG_SIZE equ 102400          ; size of the output image
 
     NULL equ 0                         ; end of string
 
