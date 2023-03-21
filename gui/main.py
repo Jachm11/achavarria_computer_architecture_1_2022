@@ -9,6 +9,8 @@ def run_program():
     result = subprocess.run("./x86", capture_output=True)
     toc=timeit.default_timer()
     rsa_time = toc - tic
+    time_text = "Decryption done in: " + str(rsa_time)[0:4] + "s" 
+    lbl_time.config(text = time_text)
     if result.returncode == 0:
         print("Program finished successfully")
         print("Program output:", result.stdout)
@@ -82,9 +84,6 @@ def generate_key(d,n):
     
     make_key_txt(d,n,"key.txt")
 
-
-
-
 # Function to open an image file using a file dialog
 def decode_image():
     global tk_img_decrypt
@@ -96,6 +95,8 @@ def decode_image():
 
 
     run_program()
+
+    lbl_time.pack(side=tk.TOP)
 
     txt_to_png('output.txt', 320, 320, 'output.png')
     image = Image.open('output.png')
@@ -109,7 +110,11 @@ def decode_image():
 def main():
 
     global lbl_encrypted,lbl_decrypted, btn_open, btn_decode,lbl_equation, \
-        lbl_d, ent_d,lbl_n,ent_n, lbl_key, btn_change
+        lbl_d, ent_d,lbl_n,ent_n, lbl_key, btn_change, rsa_time, lbl_time, \
+        time_text
+    
+    rsa_time=""
+    time_text=""
 
     # Create a Tkinter window
     root = tk.Tk()
@@ -170,6 +175,9 @@ def main():
     lbl_n.pack_forget()
     ent_n = tk.Entry(frm_bottom)
     ent_n.pack_forget()
+
+    lbl_time = tk.Label(frm_last_bottom, text=time_text)
+
 
     # Run the Tkinter event loop
     root.mainloop()
