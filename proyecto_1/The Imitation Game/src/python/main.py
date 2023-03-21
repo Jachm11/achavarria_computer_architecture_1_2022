@@ -1,3 +1,12 @@
+"""
+; Proyecto #1 Arquitectura de Computadores
+;   The Imitation Game:
+;   Diseno e Implementacion de un ASIP de desencriptacion mediante RSA
+;
+; Author: Jose Alejandro Chavarria Madriz
+; Email: joalchama@gmail.com
+"""
+
 import tkinter as tk
 from PIL import ImageTk, Image
 from tkinter import filedialog, messagebox
@@ -159,16 +168,16 @@ def main():
     script_dir = os.path.dirname(__file__)
 
     #320x320
-    input_w = 480
-    input_h = 640
-    output_w = 320
-    output_h = 320
+    # input_w = 480
+    # input_h = 640
+    # output_w = 320
+    # output_h = 320
 
     #640x480
-    # input_w = 640
-    # input_h = 960
-    # output_w = 640
-    # output_h = 480
+    input_w = 640
+    input_h = 960
+    output_w = 640
+    output_h = 480
 
     # Configure root
     root = tk.Tk()

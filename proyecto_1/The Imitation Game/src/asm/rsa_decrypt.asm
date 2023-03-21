@@ -37,12 +37,12 @@ section .data
     S_IWUSR      equ 00200q
 
     ; 640x480
-    ; INPUT_IMG_SIZE  equ 614400          ; size of the input image
-    ; OUTPUT_IMG_SIZE equ 307200          ; size of the output image
+    INPUT_IMG_SIZE  equ 614400          ; size of the input image
+    OUTPUT_IMG_SIZE equ 307200          ; size of the output image
 
     ; 320x320
-    INPUT_IMG_SIZE  equ 204800          ; size of the input image
-    OUTPUT_IMG_SIZE equ 102400          ; size of the output image
+    ; INPUT_IMG_SIZE  equ 204800          ; size of the input image
+    ; OUTPUT_IMG_SIZE equ 102400          ; size of the output image
 
     NULL equ 0                         ; end of string
 
