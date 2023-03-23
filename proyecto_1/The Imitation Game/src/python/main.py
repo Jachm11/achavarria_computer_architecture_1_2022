@@ -102,9 +102,10 @@ def open_txt():
     file = filedialog.askopenfilename(title="Select txt")
     target_dir = os.path.join(script_dir, 'build/')
     copy2(file, target_dir+"input.txt")
-    txt_to_png(file, 320, 640, "input.png")
+    txt_to_png(file, input_w, input_h, "input.png")
     input_path = os.path.join(script_dir, 'build/input.png')
     image = Image.open(input_path)
+    image = image.resize((480, 640))
     tk_img_encrypt = ImageTk.PhotoImage(image)
     modify_ui()
 
@@ -124,6 +125,7 @@ def decode_image():
     txt_to_png(output_path, output_w, output_h, 'output.png')
     input_path = os.path.join(script_dir, 'build/output.png')
     image = Image.open(input_path)
+    image = image.resize((480, 320))
     tk_img_decrypt = ImageTk.PhotoImage(image)
     lbl_decrypted.config(image=tk_img_decrypt)
 
@@ -198,7 +200,7 @@ def main():
 
     # Show tittle
     lbl_tittle = tk.Label(
-        frm_top, text="The Imitation Game: The ASIP RSV Decoder", font='Arial 17 bold')
+        frm_top, text="The Imitation Game: The ASIP RSA Decoder", font='Arial 17 bold')
     lbl_tittle.pack()
 
     # Image labels
