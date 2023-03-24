@@ -9,7 +9,7 @@
 
 import tkinter as tk
 from PIL import ImageTk, Image
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 import subprocess
 import timeit
 import os
@@ -23,19 +23,10 @@ def run_program():
     """
     It runs the x86 program, captures the output, and prints it to the console
     """
-    tic = timeit.default_timer()
+    global result, tic
     input_path = os.path.join(script_dir, 'build/')
-    result = subprocess.run("./rsa_decrypt",cwd=input_path, capture_output=True)
-    toc = timeit.default_timer()
-    rsa_time = toc - tic
-    time_text = f"Decryption done in: {rsa_time:.4f}s"
-    lbl_time.config(text=time_text)
-    if result.returncode == 0:
-        print("Program finished successfully")
-        print("Program output:", result.stdout)
-    else:
-        print("Program failed with error code", result.returncode)
-        print("Program error message:", result.stderr)
+    tic = timeit.default_timer()
+    result = subprocess.Popen("./rsa_decrypt",cwd=input_path)
 
 
 def txt_to_png(txt_file, width, height, output_file):
@@ -77,6 +68,45 @@ def make_key_txt(num1, num2, filename):
 #       _______________
 # _____/ GUI functions
 
+def update_progressbar():
+    """
+    It checks if the process is still running, if it is, it waits for 600ms and then calls itself again.
+    If it's not, it checks if the process finished successfully, if it did, it displays the decrypted
+    image and the time it took to decrypt it, if it didn't, it displays an error message
+    :return: the output of the process.
+    """
+    global tk_img_decrypt
+    if result.poll() is None:  # If process is still running
+        root.after(600, update_progressbar)
+    else:  # If process has finished
+        toc = timeit.default_timer()
+        output, errors = result.communicate()
+        progressbar['value'] = 100
+        if result.returncode == 0:
+            lbl_time.pack(side=tk.TOP)
+            output_path = os.path.join(script_dir, 'build/output.txt')
+            txt_to_png(output_path, output_w, output_h, 'output.png')
+            input_path = os.path.join(script_dir, 'build/output.png')
+            image = Image.open(input_path)
+            image = image.resize((480, 320))
+            tk_img_decrypt = ImageTk.PhotoImage(image)
+            lbl_decrypted.config(image=tk_img_decrypt)
+            toc = timeit.default_timer()
+            rsa_time = toc - tic
+            time_text = f"Decryption done in: {rsa_time:.4f}s"
+            lbl_time.config(text=time_text)
+            progressbar.pack_forget()
+            progressbar['value'] = 0
+            print("Program finished successfully")
+            print("Program output:", output)
+        else:
+            progressbar.pack_forget()
+            messagebox.showerror("An error occured during the process")
+            print("Program error:", errors)
+        return
+    # Update progressbar value based on process output
+    progressbar['value'] += 10
+
 
 def modify_ui():
     """
@@ -115,19 +145,12 @@ def decode_image():
     It takes the values of the d and n entry boxes, generates a key, runs the program, and then displays
     the output image
     """
-    global tk_img_decrypt
     d = ent_d.get()
     n = ent_n.get()
     generate_key(d, n)
     run_program()
-    lbl_time.pack(side=tk.TOP)
-    output_path = os.path.join(script_dir, 'build/output.txt')
-    txt_to_png(output_path, output_w, output_h, 'output.png')
-    input_path = os.path.join(script_dir, 'build/output.png')
-    image = Image.open(input_path)
-    image = image.resize((480, 320))
-    tk_img_decrypt = ImageTk.PhotoImage(image)
-    lbl_decrypted.config(image=tk_img_decrypt)
+    progressbar.pack(side=tk.BOTTOM)
+    update_progressbar()
 
 
 def generate_key(d, n):
@@ -162,8 +185,8 @@ def generate_key(d, n):
 
 def main():
     global lbl_encrypted, lbl_decrypted, btn_open, btn_decode, lbl_equation, \
-        lbl_d, ent_d, lbl_n, ent_n, lbl_key, btn_change, lbl_time, \
-        time_text, script_dir, input_w, input_h, output_w,output_h
+        lbl_d, ent_d, lbl_n, ent_n, lbl_key, btn_change, lbl_time, progressbar, \
+        time_text, script_dir, input_w, input_h, output_w, output_h, root
 
     # Define some important varibles
     time_text = ""
@@ -234,6 +257,9 @@ def main():
     # Entries
     ent_d = tk.Entry(frm_bottom)
     ent_n = tk.Entry(frm_bottom)
+
+    #Progressbar
+    progressbar = ttk.Progressbar(frm_last_bottom, orient=tk.HORIZONTAL, length=280, mode='determinate')
 
     # Root mainloop
     root.mainloop()
