@@ -1,0 +1,15 @@
+// D = Depth (quantity of memory spaces as in 2^D)
+// W = Word width (bits per address)
+module instruction_memory #(parameter D=6, W=32)(
+	input  logic [D-1:0] address,
+	output logic [W-1:0] read
+);
+
+	logic [W-1:0] rom [(2**D)-1:0];
+	
+	initial
+		$readmemh("instructions.mem", rom);
+	 
+	assign read = rom[address];
+	
+endmodule
