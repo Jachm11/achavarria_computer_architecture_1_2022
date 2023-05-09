@@ -1,0 +1,85 @@
+module tb_control_unit;
+    // Inputs
+    logic[1:0] inst_type;
+    logic[1:0] dir_mode;
+    logic[2:0] opcode;
+
+    // Outputs
+    logic[1:0] result_source;
+    logic alu_source;
+    logic mem_write;
+    logic reg_write;
+    logic jump;
+    logic branch;
+    logic[2:0] alu_control;
+
+    // Instantiate the Unit Under Test (UUT)
+    control_unit uut (
+        .inst_type(inst_type),
+        .dir_mode(dir_mode),
+        .opcode(opcode),
+        .result_source(result_source),
+        .alu_source(alu_source),
+        .mem_write(mem_write),
+        .reg_write(reg_write),
+        .jump(jump),
+        .branch(branch),
+        .alu_control(alu_control)
+    );
+
+    initial begin
+        // Test case 1: ADD instruction
+        inst_type = 2'b00;
+        dir_mode = 2'b00;
+        opcode = 3'b000;
+        #5;
+        assert(result_source === 2'b00);
+        assert(alu_source === 1'b0);
+        assert(mem_write === 1'b0);
+        assert(reg_write === 1'b1);
+        assert(jump === 1'b0);
+        assert(branch === 1'b0);
+        assert(alu_control === 3'b000);
+
+        // Test case 2: BEQ instruction
+        inst_type = 2'b01;
+        dir_mode = 2'b00;
+        opcode = 3'b100;
+        #5;
+        assert(result_source === 2'b00);
+        assert(alu_source === 1'b0);
+        assert(mem_write === 1'b0);
+        assert(reg_write === 1'b0);
+        assert(jump === 1'b0);
+        assert(branch === 1'b1);
+        assert(alu_control === 3'b000);
+
+        // Test case 3: LUI instruction
+        inst_type = 2'b10;
+        dir_mode = 2'b00;
+        opcode = 3'b100;
+        #5;
+        assert(result_source === 2'b00);
+        assert(alu_source === 1'b1);
+        assert(mem_write === 1'b0);
+        assert(reg_write === 1'b1);
+        assert(jump === 1'b0);
+        assert(branch === 1'b0);
+        assert(alu_control === 3'b000);
+
+        // Test case 4: Default case
+        inst_type = 2'b11;
+        dir_mode = 2'b11;
+        opcode = 3'b111;
+        #5;
+        assert(result_source === 2'b00);
+        assert(alu_source === 1'b0);
+        assert(mem_write === 1'b0);
+        assert(reg_write === 1'b0);
+        assert(jump === 1'b0);
+        assert(branch === 1'b0);
+        assert(alu_control === 3'b000);
+
+        $display("All test cases passed");
+    end
+endmodule

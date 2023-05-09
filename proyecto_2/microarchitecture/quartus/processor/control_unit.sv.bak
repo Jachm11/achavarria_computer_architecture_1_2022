@@ -1,0 +1,38 @@
+module control_unit (
+	input  logic[1:0] inst_type,
+	input  logic[1:0] dir_mode,
+    input  logic[2:0] opcode,
+	output logic pc_source,
+    output logic result_source,
+    output logic alu_source,
+    output logic mem_write,
+    output logic reg_write,
+    output logic[2:0] alu_control
+);
+
+    always_comb begin
+        if (inst_type == 2'b00) begin 
+            reg_write <= 1;
+            mem_write <= 0;
+            pc_source <= 0; //PC+4 
+            result_source <= 0; //ALU
+        end
+        else begin
+            if (opcode == 3'b000 & dir_mode == 2'b01) begin // STORE
+                reg_write <= 0;
+                mem_write <= 1;
+                pc_source <= 0; //PC+4 
+                result_source <= 1; // X
+            end
+            else begin
+                if (inst_type == 2'b01) begin
+                    reg_write <= 1;
+                    mem_write <= 0;
+                    pc_source <= 0; //PC+4 
+                    result_source <= 1; //MEM
+                end
+            end
+        end
+    end
+	
+endmodule
