@@ -8,6 +8,8 @@ module control_unit (
     output logic reg_write,
     output logic jump,
     output logic branch,
+    output logic is_rd,
+    output logic imm_src,
     output logic[2:0] alu_control
 );
 
@@ -45,30 +47,30 @@ module control_unit (
         case ({opcode,dir_mode,inst_type})
 // result_source, result_source, alu_source, mem_write, reg_write, jump, branch, alu_control, alu_control, alu_control
 
-            AA0: control_signals =  10'b0000100000;
-		    AA1: control_signals =  10'b0000100001;
-            AA2: control_signals =  10'b0000100010;
-            AA3: control_signals =  10'b0000100011;
-            AA4: control_signals =  10'b0000100100;
-            BA0: control_signals =  10'b0010100000;
-            BA1: control_signals =  10'b0010100101;		
-            BA2: control_signals =  10'b0010100110;
-            BB0: control_signals =  10'b0111000000;
-            BB1: control_signals =  10'b0110100000;
-            BB2: control_signals =  10'b0110100000;
-            BB3: control_signals =  10'b0110100000;
-            BC0: control_signals =  10'b1010110000;
-            BC1: control_signals =  10'b0000001000;
-            BC2: control_signals =  10'b0000001000;
-            BC3: control_signals =  10'b0000001000;
-            BC4: control_signals =  10'b0000001000;
-            CA0: control_signals =  10'b0010100101;
-            CC0: control_signals =  10'b0010110000;
-            default: control_signals =  10'b0000000000;
+            AA0: control_signals =  12'b000010010000;
+		    AA1: control_signals =  12'b000010010001;
+            AA2: control_signals =  12'b000010010010;
+            AA3: control_signals =  12'b000010010011;
+            AA4: control_signals =  12'b000010010100;
+            BA0: control_signals =  12'b001010010000;
+            BA1: control_signals =  12'b001010010101;		
+            BA2: control_signals =  12'b001010010110;
+            BB0: control_signals =  12'b011100000000;
+            BB1: control_signals =  12'b011010010000;
+            BB2: control_signals =  12'b011010010000;
+            BB3: control_signals =  12'b011010010000;
+            BC0: control_signals =  12'b101011010000;
+            BC1: control_signals =  12'b000000100000;
+            BC2: control_signals =  12'b000000100000;
+            BC3: control_signals =  12'b000000100000;
+            BC4: control_signals =  12'b000000100000;
+            CA0: control_signals =  12'b001010011101;
+            CC0: control_signals =  12'b001011011000;
+            default: control_signals =  12'b0000000000;
         endcase
 
     end
 
-    assign {result_source, alu_source, mem_write, reg_write, jump, branch, alu_control} = control_signals;
+    assign {result_source, alu_source, mem_write, reg_write, jump, branch, is_rd, imm_src, alu_control} = control_signals;
 	
 endmodule

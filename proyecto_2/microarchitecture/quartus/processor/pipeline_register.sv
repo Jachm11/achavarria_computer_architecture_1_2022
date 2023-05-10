@@ -6,28 +6,27 @@ module pipeline_register #(parameter N = 32, parameter M = 32) (
   output logic [M-1:0] out
 );
 
-  logic [N-1:0] stage_out;
-  logic [M-1:0] enabled_out;
+  logic [N-1:0] stage;
 
-  always_ff @(posedge clk) begin
+  always_ff @(posedge clk or negedge reset) begin
     if (!reset) begin
-      stage_out <= '0;
-      enabled_out <= '0;
+      stage <= '0;
     end 
     else begin
-      stage_out <= in;
       if (enable) begin
-        enabled_out <= stage_out;
+        stage <= in;
       end
     end
   end
 
-  always_ff @(negedge clk) begin
+  always_ff @(negedge clk or negedge reset) begin
     if (!reset) begin
       out <= '0;
     end 
     else begin
-      out <= enabled_out;
+      if (enable) begin
+        out <= stage;
+      end
     end
   end
 
