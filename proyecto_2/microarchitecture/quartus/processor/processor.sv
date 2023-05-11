@@ -11,7 +11,7 @@ module processor(
 	logic[8:0] PCF;
 	logic[8:0] PCPlus4F;
 	always_comb begin : pc_plus_4
-		PCPlus4F <= PCF + 4;
+		PCPlus4F <= PCF + 9'b000000001;
 	end
 
 	always_comb begin : pc_select
@@ -93,8 +93,8 @@ module processor(
 	end
 
 	logic regWriteW;
-	logic resultW;
-	logic rdW;
+	logic[31:0] resultW;
+	logic[4:0] rdW;
 	logic[31:0] RD1D;
 	logic[31:0] RD2D;
 	register_file #(5, 32) register_file (
@@ -132,7 +132,7 @@ module processor(
 
 	//-------------------------DE------------------------------
 
-	logic[128:0] DE_output;
+	logic[131:0] DE_output;
 	logic[31:0] RD1E;
 	logic[31:0] RD2E;
 	logic[8:0] PCE;
@@ -147,20 +147,170 @@ module processor(
 	logic jumpE;
 	logic branchE;
 	logic[2:0] aluControlE;
+	logic[2:0] opcodeE;
 
-	pipeline_register #(129, 129) DE_pipe(
+	pipeline_register #(132, 132) DE_pipe(
 		.clk(clk),
 		.reset(reset),
-		.in({rdD,RD1D,RD2D,immExtD,PCD,PCPlus4D,resultSrcD,ALUSrcD,memWriteD,regWriteD,jumpD,branchD,aluControlD}),
+		.in({instrD[6:4],rdD,RD1D,RD2D,immExtD,PCD,PCPlus4D,resultSrcD,ALUSrcD,memWriteD,regWriteD,jumpD,branchD,aluControlD}),
 		.enable(1),
 		.out(DE_output)
 	);
 
-	assign {rdE,RD1E,RD2E,immExtE,PCE,PCPlus4E,resultSrcE,ALUSrcE,memWriteE,regWriteE,jumpE,branchE,aluControlE} = DE_output;
+	assign {opcodeE,rdE,RD1E,RD2E,immExtE,PCE,PCPlus4E,resultSrcE,ALUSrcE,memWriteE,regWriteE,jumpE,branchE,aluControlE} = DE_output;
 
 
 	//---------------------EXECUTE-------------------------------
 	
+	logic[31:0] srcAE;
+	logic[31:0] srcBE;
+	always_comb begin : second_source
+		if (!ALUSrcE) begin
+			srcBE <= RD2E;
+		end
+		else begin
+			srcBE <= immExtE;
+		end
+		srcAE <= RD1E;
+		if(opcodeE == 0 && aluControlE == 5) begin
+			srcAE <= immExtE;
+			srcBE <= 12;
+		end
+	end
+
+	logic[31:0] ALUResultE_aux;
+	alu #(32) ALU (
+        .operation(aluControlE),
+        .a(srcAE),
+        .b(srcBE),
+        .out(ALUResultE_aux)
+    );
+
+	logic equal;
+	logic less_than;
+	logic greater_than;
+	comparison_unit #(32) comparison_unit (
+        .a(srcAE),
+        .b(srcBE),
+        .equal(equal),
+		.less_than(less_than),
+		.greater_than(greater_than)
+    );
+
+	logic[31:0] ALUResultE;
+	always_comb begin : PC_target
+		if (opcodeE == 0 && jumpE) begin
+			PCTargetE <= ALUResultE_aux;
+			ALUResultE <= PCPlus4E;
+		end
+		else begin
+			if(jumpE) begin
+				ALUResultE <= PCPlus4E;
+			end
+			PCTargetE <= PCE + immExtE;	
+			ALUResultE <= ALUResultE_aux;
+		end
+	end
+	 
+	logic branch_ok;
+
+	always_comb begin : verify_branch
+		case (opcodeE)
+		3'b001: // beq
+			branch_ok = (equal == 1'b1);
+		3'b010: // bne
+			branch_ok = (equal == 1'b0);
+		3'b011: // ble
+			branch_ok = (equal == 1'b1) || (less_than == 1'b1);
+		3'b100: // blt
+			branch_ok = (less_than == 1'b1);
+		default:
+			branch_ok = 1'b0; // Default value if opcode is not recognized
+		endcase
+	end
+
+	always_comb begin : pc_source
+		PCSrcE <= jumpE || (branchE && branch_ok);
+	end
+
+	logic[31:0] writeDataE;
+	assign writeDataE = RD2E;
+
+	//-------------------------EM------------------------------
+
+	logic regWriteM;
+	logic[1:0] resultSrcM;
+	logic memWriteM;
+
+	logic[31:0] ALUResultM;
+	logic[31:0] writeDataM;
+	logic[4:0] rdM;
+	logic[2:0] opcodeM;
+	logic[8:0] PCPlus4M;
+	logic[84:0] EM_output;
+	pipeline_register #(85,85) EM_pipe(
+		.clk(clk),
+		.reset(reset),
+		.in({opcodeE,regWriteE,resultSrcE,memWriteE,ALUResultE,writeDataE,rdE,PCPlus4E}),
+		.enable(1),
+		.out(EM_output)
+	);
+
+	assign {opcodeM,regWriteM,resultSrcM,memWriteM,ALUResultM,writeDataM,rdM,PCPlus4M} = EM_output;
+
+	//---------------------MEMORY-------------------------------
+
+	logic[31:0] readDataM;
+	logic[15:0] RAM_out;
+	logic[31:0] RAM_signed;
+	data_memory #(13,16) data_memory(
+		.clk(clk),
+		.write_enable(memWriteM),
+		.address(ALUResultM),
+		.data_in(writeDataM),
+		.data_out(RAM_out)
+	);
 	
+	sign_extend #(16, 32) extend_ram (
+		.a(RAM_out),
+		.o(RAM_signed)
+  	);
+	
+	always_comb begin
+		if(opcodeM == 1 || opcodeM == 2) begin
+			readDataM <= {16'b0,RAM_out};
+		end
+		else begin
+			readDataM <= RAM_signed;
+		end
+	end
+
+	//-------------------------MW------------------------------
+
+	logic[1:0] resultSrcW;
+	logic[31:0] ALUResultW;
+
+	logic[31:0] readDataW;
+	logic[8:0] PCPlus4W;
+
+	logic[80:0] MW_output;
+
+	pipeline_register #(81,81) MW_pipe(
+		.clk(clk),
+		.reset(reset),
+		.in({regWriteM,resultSrcM,ALUResultM,readDataM,rdM,PCPlus4M}),
+		.enable(1),
+		.out(MW_output)
+	);
+
+	assign {regWriteW,resultSrcW,ALUResultW,readDataW,rdW,PCPlus4W} = MW_output;
+
+	//---------------------WRITEBACK-------------------------------
+
+	multiplexer #(4,32) writeback (
+		.select(resultSrcW),
+		.channels({32'h0,PCPlus4W,readDataW,ALUResultW}),
+		.out(resultW)
+	);
 
 endmodule

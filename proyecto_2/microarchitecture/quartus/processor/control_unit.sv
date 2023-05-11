@@ -33,7 +33,7 @@ module control_unit (
     localparam CA0 = 7'b0001000; // LUI
     localparam CC0 = 7'b0001010; // JAL
 
-    logic[9:0] control_signals;
+    logic[11:0] control_signals;
 
     // result_source 00 -> ALU
     // result_source 01 -> MEM
