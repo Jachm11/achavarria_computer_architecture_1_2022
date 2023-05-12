@@ -31,7 +31,7 @@ module control_unit (
     localparam BC3 = 7'b0110110; // BLE
     localparam BC4 = 7'b1000110; // BLT
     localparam CA0 = 7'b0001000; // LUI
-    localparam CC0 = 7'b0001010; // JAL
+    localparam CC0 = 7'b0011010; // JAL
 
     logic[11:0] control_signals;
 

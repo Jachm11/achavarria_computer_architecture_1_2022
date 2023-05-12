@@ -207,8 +207,10 @@ module processor(
 			if(jumpE) begin
 				ALUResultE <= PCPlus4E;
 			end
-			PCTargetE <= PCE + immExtE;	
-			ALUResultE <= ALUResultE_aux;
+			else begin
+				ALUResultE <= ALUResultE_aux;
+			end
+			PCTargetE <= PCE + immExtE;
 		end
 	end
 	 
