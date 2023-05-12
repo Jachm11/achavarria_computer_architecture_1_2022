@@ -262,22 +262,79 @@ module processor(
 
 	//---------------------MEMORY-------------------------------
 
-	logic[31:0] readDataM;
-	logic[15:0] RAM_out;
-	logic[31:0] RAM_signed;
-	data_memory #(13,16) data_memory(
-		.clk(clk),
-		.write_enable(memWriteM),
-		.address(ALUResultM),
-		.data_in(writeDataM),
-		.data_out(RAM_out)
-	);
+
+	logic[31:0] address_even;
+	logic[31:0] address_odd;
+	logic mem_write_even;
+	logic mem_write_odd;
+	always_comb begin : write_select
+		if(ALUResultM[0] == 0) begin
+			mem_write_even <= memWriteM;
+			mem_write_odd <= 0;
+			address_even <= ALUResultM >> 1;
+		end
+		else begin
+			mem_write_even <= 0;
+			mem_write_odd <= memWriteM;
+			if (memWriteM) begin
+				address_even <= ALUResultM >> 1;
+			end
+			else begin
+				if (opcodeE != 1) begin
+					address_even <= (ALUResultM >> 1) + 1;
+				end
+				else begin
+					address_even <= ALUResultM >> 1;
+				end
+			end
+		end
+		address_odd <= ALUResultM >> 1;
+	end
 	
+	logic[7:0] RAM_out_even;
+	logic[7:0] RAM_out_odd;
+	data_memory #(8,8) data_memory_even(
+		.clk(clk),
+		.write_enable(mem_write_even),
+		.address(address_even),
+		.data_in(writeDataM),
+		.data_out(RAM_out_even)
+	);
+	data_memory #(8,8) data_memory_odd(
+		.clk(clk),
+		.write_enable(mem_write_odd),
+		.address(address_odd),
+		.data_in(writeDataM),
+		.data_out(RAM_out_odd)
+	);
+
+	logic[15:0] RAM_out;
+	always_comb begin : prepare_read_data
+		if(ALUResultM[0] == 0) begin
+			if (opcodeM == 1) begin
+				RAM_out <= {8'b0,RAM_out_even};
+			end
+			else begin
+				RAM_out <= {RAM_out_odd,RAM_out_even};
+			end
+		end
+		else begin
+			if (opcodeM == 1) begin
+				RAM_out <= {8'b0,RAM_out_odd};
+			end
+			else begin
+				RAM_out <= {RAM_out_even,RAM_out_odd};
+			end
+		end
+	end
+	
+	logic[31:0] RAM_signed;
 	sign_extend #(16, 32) extend_ram (
 		.a(RAM_out),
 		.o(RAM_signed)
   	);
 	
+	logic[31:0] readDataM;
 	always_comb begin
 		if(opcodeM == 1 || opcodeM == 2) begin
 			readDataM <= {16'b0,RAM_out};
