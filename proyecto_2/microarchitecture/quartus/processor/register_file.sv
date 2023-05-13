@@ -3,7 +3,6 @@
 // W = Word width (bits per register)
 module register_file #(parameter D=5, W=32)(
     input logic clk,                // Clock input
-	input logic rst,                // Reset
     input logic [D-1:0] address1,   // Address input 1
     input logic [D-1:0] address2,   // Address input 2
     input logic [D-1:0] address3,   // Address input 3
@@ -22,7 +21,7 @@ module register_file #(parameter D=5, W=32)(
         end
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(negedge clk) begin
 		  if(write_enable) begin
              register_file[address3] <= write_data;
         end

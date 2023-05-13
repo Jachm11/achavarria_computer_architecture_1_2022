@@ -1,4 +1,4 @@
-module pipeline_register #(parameter N = 32, parameter M = 32) (
+module pc_register #(parameter N = 32, parameter M = 32) (
   input clk,
   input reset,
   input enable,
@@ -6,9 +6,9 @@ module pipeline_register #(parameter N = 32, parameter M = 32) (
   output logic [M-1:0] out
 );
 
-  always_ff @(posedge clk, negedge reset) begin
+  always_ff @(negedge clk or negedge reset) begin
     if (!reset) begin
-      out <= 'z;
+      out <= '0;
     end
     else begin
       if (enable) begin

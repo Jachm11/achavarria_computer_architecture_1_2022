@@ -10,7 +10,7 @@ module data_memory #(parameter D=6, W=32)(
 );
 	logic [W-1:0] mem [(2**D)-1:0];
 	
-	always_ff @(posedge clk)
+	always_ff @(negedge clk)
 		if(write_enable) mem[address] <= data_in;
 	
 	assign data_out = mem[address];

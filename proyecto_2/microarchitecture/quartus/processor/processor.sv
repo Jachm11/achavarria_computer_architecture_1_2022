@@ -2,6 +2,13 @@ module processor(
 	input logic clk,
 	input logic reset
 );
+	//---------------- HAZARD SIGNALS---------------------------------
+	logic stallF;
+    logic stallD;
+    logic flushD;
+    logic flushE;
+    logic[1:0] fowardAE;
+    logic[1:0] fowardBE;
 
 	//---------------- FETCH---------------------------------
 	logic PCSrcE;
@@ -23,11 +30,11 @@ module processor(
 		end
 	end
 
-	pipeline_register #(9, 9) pc(
+	pc_register #(9, 9) pc(
 		.clk(clk),
 		.reset(reset),
 		.in(PCF_prime),
-		.enable(1),
+		.enable(!stallF),
 		.out(PCF)
 	);
 
@@ -45,9 +52,9 @@ module processor(
 	logic[8:0] PCPlus4D;
 	pipeline_register #(50, 50) FD_pipe(
 		.clk(clk),
-		.reset(reset),
+		.reset(!flushD),
 		.in({PCF,PCPlus4F,instrF}),
-		.enable(1),
+		.enable(!stallD),
 		.out(FD_output)
 	);
 
@@ -132,13 +139,15 @@ module processor(
 
 	//-------------------------DE------------------------------
 
-	logic[131:0] DE_output;
+	logic[141:0] DE_output;
 	logic[31:0] RD1E;
 	logic[31:0] RD2E;
 	logic[8:0] PCE;
 	logic[31:0] immExtE;
 	logic[8:0] PCPlus4E;
 	logic[4:0] rdE;
+	logic[4:0] rs1E;
+	logic[4:0] rs2E;
 
 	logic[1:0] resultSrcE;
 	logic ALUSrcE;
@@ -149,29 +158,59 @@ module processor(
 	logic[2:0] aluControlE;
 	logic[2:0] opcodeE;
 
-	pipeline_register #(132, 132) DE_pipe(
+	pipeline_register #(142, 142) DE_pipe(
 		.clk(clk),
-		.reset(reset),
-		.in({instrD[6:4],rdD,RD1D,RD2D,immExtD,PCD,PCPlus4D,resultSrcD,ALUSrcD,memWriteD,regWriteD,jumpD,branchD,aluControlD}),
+		.reset(!flushE),
+		.in({instrD[16:12],ry,instrD[6:4],rdD,RD1D,RD2D,immExtD,PCD,PCPlus4D,resultSrcD,ALUSrcD,memWriteD,regWriteD,jumpD,branchD,aluControlD}),
 		.enable(1),
 		.out(DE_output)
 	);
 
-	assign {opcodeE,rdE,RD1E,RD2E,immExtE,PCE,PCPlus4E,resultSrcE,ALUSrcE,memWriteE,regWriteE,jumpE,branchE,aluControlE} = DE_output;
+	assign {rs1E,rs2E,opcodeE,rdE,RD1E,RD2E,immExtE,PCE,PCPlus4E,resultSrcE,ALUSrcE,memWriteE,regWriteE,jumpE,branchE,aluControlE} = DE_output;
 
 
 	//---------------------EXECUTE-------------------------------
 	
+	logic[31:0] RD1E_foward;
+	logic[31:0] RD2E_foward;
+	logic[31:0] ALUResultM;
+	always_comb begin : fowarding
+
+		if (fowardAE == 2'b00) begin
+			RD1E_foward <= RD1E;
+		end
+		else begin
+			if (fowardAE == 2'b01) begin
+				RD1E_foward = resultW; 
+			end
+			else begin
+				RD1E_foward = ALUResultM;
+			end
+		end
+
+		if (fowardBE == 2'b00) begin
+			RD2E_foward <= RD2E;
+		end
+		else begin
+			if (fowardBE == 2'b01) begin
+				RD2E_foward = resultW; 
+			end
+			else begin
+				RD2E_foward = ALUResultM;
+			end
+		end
+	end
+
 	logic[31:0] srcAE;
 	logic[31:0] srcBE;
 	always_comb begin : second_source
 		if (!ALUSrcE) begin
-			srcBE <= RD2E;
+			srcBE <= RD2E_foward;
 		end
 		else begin
 			srcBE <= immExtE;
 		end
-		srcAE <= RD1E;
+		srcAE <= RD1E_foward;
 		if(opcodeE == 0 && aluControlE == 5) begin
 			srcAE <= immExtE;
 			srcBE <= 12;
@@ -244,7 +283,6 @@ module processor(
 	logic[1:0] resultSrcM;
 	logic memWriteM;
 
-	logic[31:0] ALUResultM;
 	logic[31:0] writeDataM;
 	logic[4:0] rdM;
 	logic[2:0] opcodeM;
@@ -371,5 +409,28 @@ module processor(
 		.channels({32'h0,PCPlus4W,readDataW,ALUResultW}),
 		.out(resultW)
 	);
+
+	//----------------HAZARD UNIT---------------------------------
+
+	hazard_unit hazard_unit (
+        .rs1D(instrD[16:12]),
+        .rs2D(ry),
+        .rs1E(rs1E),
+        .rs2E(rs2E),
+        .rdE(rdE),
+        .PCSrcE(PCSrcE),
+        .resultSrcE(resultSrcE),
+        .rdM(rdM),
+        .regWriteM(regWriteM),
+        .resultSrcM(resultSrcM),
+        .rdW(rdW),
+        .regWriteW(regWriteW),
+        .stallF(stallF),
+        .stallD(stallD),
+        .flushD(flushD),
+        .flushE(flushE),
+        .fowardAE(fowardAE),
+        .fowardBE(fowardBE)
+    );
 
 endmodule
