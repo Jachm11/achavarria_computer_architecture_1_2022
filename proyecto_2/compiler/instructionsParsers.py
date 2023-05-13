@@ -39,6 +39,7 @@ def encodeImmediate(immediate, size):
 def calculateNewPc(labels, label, current_pc, size):
     reference = findLabelRefence(labels, label)
     new_pc = reference - current_pc
+    print("current pc:  ", current_pc, " reference: ", reference)
     return encodeImmediate(new_pc, size)
 
 

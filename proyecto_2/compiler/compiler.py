@@ -1,5 +1,4 @@
 import sys
-from enum import Enum;
 from utils import * 
 from ISA import *
 from instructionsParsers import *
@@ -13,9 +12,14 @@ def parseInstruction(line):
 def main():
 
 
-    memory_file = open("memory.txt", "w")
     argv = sys.argv
     filename = argv[1]
+    output_filename = argv[2]
+
+    if not output_filename:
+        output_filename = 'out'
+
+    output_file = open(output_filename + '.mem', "w")
 
     rawCode = getFileContent(filename)
     (instructions, labels) = getInstructions(rawCode)
@@ -45,18 +49,22 @@ def main():
                 case "10":
                     encodedInstruction = parseDir10(parsedInstruction, metadata, labels, instruction['pc'])
 
+                case "special":
+                    encodedInstruction = metadata['encoding']
+
         except Exception as error: 
             raise Exception("Invalid instruction: {}: {}".format(instruction['instruction'], str(error)))
         
         else: 
-            print("encode instruction: ", encodedInstruction )
-            encodedInstruction = encodedInstruction + metadata['opcode'] + metadata['dir'] + metadata['type']
+            if dir != 'special':
+                encodedInstruction = encodedInstruction + metadata['opcode'] + metadata['dir'] + metadata['type']
+            
             encodedInstructionHex = fill(hex(int(encodedInstruction, 2))[2:], 8, "0")
-            memory_file.write(encodedInstructionHex + "\n")
+            output_file.write(encodedInstructionHex + "\n")
 
 
     
-    memory_file.close()
+    output_file.close()
 
 if __name__ == "__main__":
     main()
