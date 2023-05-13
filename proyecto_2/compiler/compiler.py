@@ -1,5 +1,4 @@
 import sys
-from enum import Enum;
 from utils import * 
 from ISA import *
 from instructionsParsers import *
