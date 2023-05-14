@@ -50,14 +50,14 @@ ISA = {
         "operands": ["rd","rx", "immediate"],  
         "immediate_size": 15
     },
-    "conservare_ocho": {
+    "conservare_octo": {
         "opcode": "000",
         "dir": "01",
         "type": "01",
         "operands": ["rx", "immediate/ry"],  
         "immediate_size": 15
     },
-    "onerare_ocho_ss": {
+    "onerare_octo_ss": {
         "opcode": "001",
         "dir": "01",
         "type": "01",
