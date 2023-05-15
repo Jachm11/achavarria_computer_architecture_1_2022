@@ -1,6 +1,9 @@
 module processor(
 	input logic clk,
-	input logic reset
+	input logic vga_clk,
+	input logic reset,
+	input logic[16:0] address_vga,
+	output logic[7:0] color
 );
 	//---------------- HAZARD SIGNALS---------------------------------
 	logic stallF;
@@ -12,7 +15,6 @@ module processor(
 	 logic syncD;
 	 logic syncE;
 	 logic recall_stall_D;
-	 logic flush_D_latency;
 	
 	//---------------- FETCH---------------------------------
 	logic PCSrcE;
@@ -356,22 +358,52 @@ module processor(
 		address_odd <= ALUResultM >> 1;
 	end
 	
+	logic even_vga;
+	logic odd_vga;
+	always_comb begin
+		if (address_vga[0] == 0) begin
+			even_vga <= 1;
+			odd_vga <= 0;
+		end
+		else begin
+			even_vga <= 0;
+			odd_vga <= 1;
+		end
+	end
+	
 	logic[7:0] RAM_out_even;
 	logic[7:0] RAM_out_odd;
-	data_memory #(8,8) data_memory_even(
+	logic[7:0] color_even;
+	logic[7:0] color_odd;
+	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/even_ram.mem") data_memory_even(
 		.clk(clk),
+		.clk_2(vga_clk),
 		.write_enable(mem_write_even),
 		.address(address_even),
+		.address_2(vga_address >> 1),
 		.data_in(writeDataM),
-		.data_out(RAM_out_even)
+		.data_out(RAM_out_even),
+		.data_out_2(color_even)
 	);
-	data_memory #(8,8) data_memory_odd(
+	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/odd_ram.mem") data_memory_odd(
 		.clk(clk),
+		.clk_2(vga_clk),
 		.write_enable(mem_write_odd),
 		.address(address_odd),
+		.address_2(vga_address >> 1),
 		.data_in(writeDataM),
-		.data_out(RAM_out_odd)
+		.data_out(RAM_out_odd),
+		.data_out_2(color_odd)
 	);
+	
+	always_comb begin: select_color
+		if (even_vga) begin
+			color <= color_even;
+		end
+		else begin
+			color <= color_odd;
+		end
+	end
 
 	logic[15:0] RAM_out;
 	always_comb begin : prepare_read_data

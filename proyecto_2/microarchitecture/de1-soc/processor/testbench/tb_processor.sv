@@ -2,7 +2,7 @@ module processor_tb;
     // Inputs
     logic clk;
     logic reset;
-    
+	 //logic[7:0] vga_address;
     // Instantiate the processor module
     processor dut (
         .clk(clk),
