@@ -11,6 +11,8 @@ module processor(
     logic[1:0] fowardBE;
 	 logic syncD;
 	 logic syncE;
+	 logic recall_stall_D;
+	 logic flush_D_latency;
 	
 	//---------------- FETCH---------------------------------
 	logic PCSrcE;
@@ -266,24 +268,37 @@ module processor(
 	end
 	 
 	logic branch_ok;
-
 	always_comb begin : verify_branch
-		case (opcodeE)
-		3'b001: // beq
-			branch_ok = (equal == 1'b1);
-		3'b010: // bne
-			branch_ok = (equal == 1'b0);
-		3'b011: // ble
-			branch_ok = (equal == 1'b1) || (less_than == 1'b1);
-		3'b100: // blt
-			branch_ok = (less_than == 1'b1);
-		default:
-			branch_ok = 1'b0; // Default value if opcode is not recognized
-		endcase
+		if(!branchE) begin
+			branch_ok <= 0;
+		end
+		else begin
+			if (opcodeE == 3'b001) begin
+				branch_ok <= (equal == 1'b1);
+			end
+			else begin
+				if (opcodeE == 3'b010) begin
+					branch_ok <= (equal == 1'b0);
+				end
+				else begin
+					if(opcodeE == 3'b011) begin
+						branch_ok <= ((equal == 1'b1) || (less_than == 1'b1));
+					end
+					else begin
+						if(opcodeE == 3'b100) begin
+							branch_ok <= (less_than == 1'b1);
+						end
+						else begin
+							branch_ok <= 0;
+						end
+					end
+				end
+			end
+		end
 	end
 
 	always_comb begin : pc_source
-		PCSrcE <= jumpE || (branchE && branch_ok);
+		PCSrcE <= jumpE || (branch_ok) && branchE;
 	end
 
 	logic[31:0] writeDataE;
@@ -445,18 +460,36 @@ module processor(
         .fowardBE(fowardBE)
     );
 	 
-	 always_ff @(negedge clk or posedge flushD) begin :sync_D
+	 always_ff @(negedge clk) begin: recall_stall
+		if (stallD) begin
+			recall_stall_D <= 1;
+		end
+		else begin
+			recall_stall_D <= 0;
+		end
+	 end
+	 
+	 always_ff @(negedge clk or posedge flushD) begin: add_latency
 		if (flushD) begin
-			syncD <= 1;
+			flush_D_latency <= 1;
+		end
+		if (!clk) begin
+			flush_D_latency <= 0;
+		end
+	 end
+	 
+	 always_ff @(negedge clk or posedge flush_D_latency) begin :sync_D
+		if (flush_D_latency) begin
+			syncD <= flushD;
 		end
 		if (!clk) begin
 			syncD <= 0;
 		end
 	 end
 	 
-	 always_ff @(negedge clk or posedge flushE) begin :sync_E
-		if (flushE) begin
-			syncE <= 1;
+	 always_ff @(negedge clk or negedge stallD) begin :sync_E
+		if (!stallD) begin
+			syncE <= recall_stall_D;
 		end
 		if (!clk) begin
 			syncE <= 0;

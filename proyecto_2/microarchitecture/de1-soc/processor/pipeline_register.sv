@@ -3,7 +3,7 @@ module pipeline_register #(parameter N = 32, parameter M = 32) (
   input reset,
   input enable,
   input logic [N-1:0] in,
-  output logic [M-1:0] out
+  output reg [M-1:0] out
 );
 
   always_ff @(posedge clk, negedge reset) begin

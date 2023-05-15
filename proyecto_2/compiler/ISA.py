@@ -86,28 +86,28 @@ ISA = {
         "immediate_size": 15
     },
     "ramos_facere_aequalis": {
-        "opcode": "000",
-        "dir": "01",
-        "type": "10",
-        "operands": [ "rx", "ry", "label"],  
-        "immediate_size": 15
-    },
-    "ramos_facere_no_aequalis": {
         "opcode": "001",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15
     },
-    "ramos_facere_minor_aequalis": {
+    "ramos_facere_no_aequalis": {
         "opcode": "010",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15
     },
-    "ramos_facere_minor": {
+    "ramos_facere_minor_aequalis": {
         "opcode": "011",
+        "dir": "01",
+        "type": "10",
+        "operands": [ "rx", "ry", "label"],  
+        "immediate_size": 15
+    },
+    "ramos_facere_minor": {
+        "opcode": "100",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
