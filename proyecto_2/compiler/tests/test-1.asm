@@ -13,7 +13,7 @@
 #
 # Memoria 
 #  0x0 -> 30
-#  0x1 -> 6 
+#  0x1 -> 24 
 
 
 addi r0, r0, 5 # carga 5 en r0

@@ -18,11 +18,14 @@ addi r6, r6, 10 # r6 = 10  #00146304
 loop:
     addi r4, r4, 1  # r4 += 1 #00024204
     bne r4, r6, loop # loop if r4 != 10 #fffe4316
+    nop
 
 loop_2:
     beq r4, r5, end # end if r4 = 21 #00064286
+    nop
     addi r4, r4, 1 # r4 += 1
     jal r7, loop_2 # r7 = PC+1 , loop_2
+    nop
 
 end:
     sub r5, r5, r5 # r5 = 0

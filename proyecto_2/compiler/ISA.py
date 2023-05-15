@@ -23,7 +23,7 @@ ISA = {
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
     },
-    "mod": {
+    "remu": {
         "opcode": "100",
         "dir": "00",
         "type": "00",
