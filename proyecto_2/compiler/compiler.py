@@ -2,6 +2,7 @@ import sys
 from utils import * 
 from ISA import *
 from instructionsParsers import *
+import os
 
 def getOperation(instruction):
     return instruction[:1][0]
@@ -14,12 +15,8 @@ def main():
 
     argv = sys.argv
     filename = argv[1]
-    output_filename = argv[2]
 
-    if not output_filename:
-        output_filename = 'out'
-
-    output_file = open(output_filename + '.mem', "w")
+    output_file = open(os.path.splitext(filename)[0] + '.mem', "w")
 
     rawCode = getFileContent(filename)
     (instructions, labels) = getInstructions(rawCode)
