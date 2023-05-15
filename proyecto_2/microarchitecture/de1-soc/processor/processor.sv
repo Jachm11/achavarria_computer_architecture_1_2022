@@ -249,7 +249,7 @@ module processor(
 		.less_than(less_than),
 		.greater_than(greater_than)
     );
-
+	 
 	logic[31:0] ALUResultE;
 	always_comb begin : PC_target
 		if (opcodeE == 0 && jumpE) begin
@@ -469,17 +469,8 @@ module processor(
 		end
 	 end
 	 
-	 always_ff @(negedge clk or posedge flushD) begin: add_latency
+	 always_ff @(negedge clk or posedge flushD) begin :sync_D
 		if (flushD) begin
-			flush_D_latency <= 1;
-		end
-		if (!clk) begin
-			flush_D_latency <= 0;
-		end
-	 end
-	 
-	 always_ff @(negedge clk or posedge flush_D_latency) begin :sync_D
-		if (flush_D_latency) begin
 			syncD <= flushD;
 		end
 		if (!clk) begin

@@ -21,4 +21,5 @@ loop:
     sub r5, r5, r6 # r5 = r5 - 1
     ble r7, r5, loop # loop if r5 > 0 
 end:
+    nop
     sb r4, 0(r5)

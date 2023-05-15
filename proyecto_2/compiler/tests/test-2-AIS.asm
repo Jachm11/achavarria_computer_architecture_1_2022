@@ -21,4 +21,5 @@ loop:
     subtrahere r5, r5, r6 # r5 = r5 - 1
     ramos_facere_minor_aequalis r7, r5, loop # loop if r5 > 0 
 end:
+    nop
     conservare_octo r4, 0(r5)

@@ -7,7 +7,7 @@ module comparison_unit #(parameter N=32)(
 );
 
 	always_comb begin
-        equal <= (a == b);
+		  equal <= (a - b == 0);
         less_than <= (a < b);
         greater_than <= (a > b);
 	end
