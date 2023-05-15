@@ -1,126 +1,126 @@
 ISA = {
-    "summare": {
+    "add": {
         "opcode": "000",
         "dir": "00",
         "type": "00",
         "operands": ["rd", "rx", "ry"],         
     },
-    "subtrahere": {
+    "sub": {
         "opcode": "001",
         "dir": "00",
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
     },
-    "multiplicare": {
+    "mul": {
         "opcode": "010",
         "dir": "00",
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
     },
-    "dividere": {
+    "div": {
         "opcode": "011",
         "dir": "00",
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
     },
-    "modularizare": {
+    "mod": {
         "opcode": "100",
         "dir": "00",
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
     },
-    "summare_immediatus": {
+    "addi": {
         "opcode": "000",
         "dir": "01",
         "type": "00",
         "operands": ["rd", "rx", "ry"],  
         "immediate_size": 15
     },
-    "transferre_sinistra_immediatus": {
+    "slli": {
         "opcode": "001",
         "dir": "01",
         "type": "00",
         "operands": ["rd","rx", "immediate"],  
         "immediate_size": 15
     },
-    "transferre_dextra_immediatus": {
+    "srli": {
         "opcode": "010",
         "dir": "01",
         "type": "00",
         "operands": ["rd","rx", "immediate"],  
         "immediate_size": 15
     },
-    "conservare_octo": {
+    "sb": {
         "opcode": "000",
         "dir": "01",
         "type": "01",
         "operands": ["rx", "immediate/ry"],  
         "immediate_size": 15
     },
-    "onerare_octo_ss": {
+    "lbu": {
         "opcode": "001",
         "dir": "01",
         "type": "01",
         "operands": ["rx", "immediate/ry" ],  
         "immediate_size": 15
     },
-    "onerare_sedecim_ss": {
+    "lhu": {
         "opcode": "010",
         "dir": "01",
         "type": "01",
         "operands": ["rx", "immediate/ry"],  
         "immediate_size": 15
     },
-    "onerare_sedecim": {
+    "lh": {
         "opcode": "011",
         "dir": "01",
         "type": "01",
         "operands": ["rx", "immediate/ry"],  
         "immediate_size": 15
     },
-    "saltare_ligare_r": {
+    "jalr": {
         "opcode": "000",
         "dir": "01",
         "type": "10",
         "operands": ["rd", "rx", "immediate"],  
         "immediate_size": 15
     },
-    "ramos_facere_aequalis": {
+    "beq": {
         "opcode": "001",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15
     },
-    "ramos_facere_no_aequalis": {
+    "bne": {
         "opcode": "010",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15
     },
-    "ramos_facere_minor_aequalis": {
+    "ble": {
         "opcode": "011",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15
     },
-    "ramos_facere_minor": {
+    "blt": {
         "opcode": "100",
         "dir": "01",
         "type": "10",
         "operands": [ "rx", "ry", "label"],  
         "immediate_size": 15,
     },
-    "onerare_ss_immediatus": {
+    "lui": {
         "opcode": "000",
         "dir": "10",
         "type": "00",
         "operands": ["rd", "label"],  
         "immediate_size": 20
     },
-    "saltare_ligare": {
+    "jal": {
         "opcode": "001",
         "dir": "10",
         "type": "10",
