@@ -1,4 +1,5 @@
 
+from compiler.compiler import getOperation
 from registers import *
 from utils import *
 
@@ -39,7 +40,6 @@ def encodeImmediate(immediate, size):
 def calculateNewPc(labels, label, current_pc, size):
     reference = findLabelRefence(labels, label)
     new_pc = reference - current_pc
-    print("current pc:  ", current_pc, " reference: ", reference)
     return encodeImmediate(new_pc, size)
 
 
@@ -71,6 +71,7 @@ def parseDir01(instruction, metadata, labels, current_pc):
 
     type = metadata['type']
     operands = getOperands(instruction)
+    
 
     match type: 
 
@@ -97,8 +98,11 @@ def parseDir01(instruction, metadata, labels, current_pc):
                 immediate = encodeImmediate(operands[2], size)
             else:
                 immediate = calculateNewPc(labels, operands[2], current_pc, size)
+
+            operation = getOperation(instruction)
+            if(operation == 'jalr'):
+                return immediate + ry + rx
             return immediate + rx + ry
-        
 
 # 
 # Parses instructions with dir 10

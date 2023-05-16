@@ -52,7 +52,7 @@ def main():
             for register in registers:
                 if(line.find(register) != -1):
                     line = line.replace(register, registers[register])
-        
+
             file_output.write(line)
 
     file_output.close()
