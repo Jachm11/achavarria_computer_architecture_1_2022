@@ -1,0 +1,144 @@
+module tb_alu;
+
+    // Parameters
+    localparam N = 32;
+
+    // Inputs
+    logic [3:0] operation;
+    logic [N-1:0] a;
+    logic [N-1:0] b;
+
+    // Outputs
+    logic [N-1:0] out;
+    logic z;
+
+    // Instantiate the ALU
+    alu #(N) dut (
+        .operation(operation),
+        .a(a),
+        .b(b),
+        .out(out),
+        .z(z)
+    );
+
+    // Clock generation
+    logic clk = 0;
+    always #5 clk = ~clk;
+
+    // Testcase 1
+    initial begin
+        operation = 4'b0000; //SUM
+        a = 32'h00000001;
+        b = 32'h00000002;
+        #10; // Wait for 10 time units
+        if (out !== 32'h00000003 || z !== 0) begin
+            $error("Testcase 1 failed: Expected out=%0d and z=0, but got out=%0d and z=%0d", 32'h00000003, out, z);
+        end else begin
+            $display("Testcase 1 passed");
+        end
+    end
+
+    // Testcase 2
+    initial begin
+        operation = 4'b0001; //SUB
+        a = 32'h00000003;
+        b = 32'h00000001;
+        #10; // Wait for 10 time units
+        if (out !== 32'h00000002 || z !== 0) begin
+            $error("Testcase 2 failed: Expected out=%0d and z=0, but got out=%0d and z=%0d", 32'h00000002, out, z);
+        end else begin
+            $display("Testcase 2 passed");
+        end
+    end
+
+    // Testcase 3
+    initial begin
+        operation = 4'b0010; //XOR
+        a = 32'h0000000F;
+        b = 32'h000000AA;
+        #10; // Wait for 10 time units
+        if (out !== 32'h000000A5 || z !== 0) begin
+            $error("Testcase 3 failed: Expected out=%0h and z=0, but got out=%0h and z=%0h", 32'h000000A5, out, z);
+        end else begin
+            $display("Testcase 3 passed");
+        end
+    end
+
+    // Testcase 4
+    initial begin
+        operation = 4'b0111; //SRA
+        a = 32'h80000000;
+        b = 32'h00000001;
+        #10; // Wait for 10 time units
+        if (out !== 32'hC0000000 || z !== 0) begin
+            $error("Testcase 4 failed: Expected out=%0h and z=0, but got out=%0h and z=%0h", 32'hC0000000, out, z);
+        end else begin
+            $display("Testcase 4 passed");
+        end
+    end
+
+    // Testcase 5
+    initial begin
+        operation = 4'b1000; //SLT
+        a = 32'h7FFFFFFF;
+        b = 32'hFFFFFFFF;
+        #10; // Wait for 10 time units
+        if (out !== 1'b1 || z !== 0) begin
+            $error("Testcase 5 failed: Expected out=%0d and z=0, but got out=%0d and z=%0d", 1, out, z);
+        end else begin
+            $display("Testcase 5 passed");
+        end
+    end
+
+    // Testcase 6
+    initial begin
+        operation = 4'b0000; //SUM
+        a = 32'h7FFFFFFF;
+        b = 32'h00000001;
+        #10; // Wait for 10 time units
+        if (out !== 32'h80000000 || z !== 0) begin
+            $error("Testcase 6 failed: Expected out=%0h and z=0, but got out=%0h and z=%0h", 32'h80000000, out, z);
+        end else begin
+            $display("Testcase 6 passed");
+        end
+    end
+
+    // Testcase 7
+    initial begin
+        operation = 4'b0100; //AND
+        a = 32'hFF00FF00;
+        b = 32'h00FF00FF;
+        #10; // Wait for 10 time units
+        if (out !== 32'h00000000 || z !== 1) begin
+            $error("Testcase 7 failed: Expected out=%0h and z=1, but got out=%0h and z=%0h", 32'h00000000, out, z);
+        end else begin
+            $display("Testcase 7 passed");
+        end
+    end
+
+    // Testcase 8
+    initial begin
+        operation = 4'b0110; //SRL
+        a = 32'hFFFFFFFF;
+        b = 32'h00000001;
+        #10; // Wait for 10 time units
+        if (out !== 32'h7FFFFFFF || z !== 0) begin
+            $error("Testcase 8 failed: Expected out=%0h and z=0, but got out=%0h and z=%0h", 32'h7FFFFFFF, out, z);
+        end else begin
+            $display("Testcase 8 passed");
+        end
+    end
+
+    // Testcase 9
+    initial begin
+        operation = 4'b1001; //Invalid operation
+        a = 32'h12345678;
+        b = 32'h87654321;
+        #10; // Wait for 10 time units
+        if (out !== 0 || z !== 0) begin
+            $error("Testcase 9 failed: Expected out=0 and z=0, but got out=%0h and z=%0h", out, z);
+        end else begin
+            $display("Testcase 9 passed");
+        end
+    end
+endmodule

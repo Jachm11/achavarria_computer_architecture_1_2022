@@ -1,5 +1,5 @@
 
-from compiler.compiler import getOperation
+from compiler import getOperation
 from registers import *
 from utils import *
 

@@ -1,0 +1,16 @@
+*/db/
+*/simulation/
+*/incremental_db/
+*/output_files/
+*/.sopc_builder/
+*/.metadata/
+*/nios_workspace/
+*/.qsys_edit/
+*/platform/
+*/hps_isw_handoff/
+*/platform.sopcinfo
+*/hps_sdram_p0_summary.csv
+*/qmegawiz_errors_log.txt
+*/cr_ie_info.json
+*/sopc_builder_log.txt
+*/nios_system_log.txt

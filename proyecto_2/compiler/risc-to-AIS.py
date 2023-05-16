@@ -49,12 +49,12 @@ def main():
     with open(filename) as file_in:
         for line in file_in:
 
-
             for register in registers:
                 if(line.find(register) != -1):
                     line = line.replace(register, registers[register])
 
             file_output.write(line)
+            file_output.write("nop\nnop\n")
 
     file_output.close()
     file_in.close()
