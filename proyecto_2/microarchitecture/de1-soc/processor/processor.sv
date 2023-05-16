@@ -45,7 +45,7 @@ module processor(
 	);
 
 	logic[31:0] instrF;
-	instruction_memory  #(10, 32) instruction_memory(
+	instruction_memory  #(9, 32) instruction_memory(
 		.address(PCF),
 		.read(instrF)
 	);
