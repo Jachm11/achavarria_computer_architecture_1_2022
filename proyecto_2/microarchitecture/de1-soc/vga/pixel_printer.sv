@@ -25,8 +25,8 @@ module pixel_printer(
 	assign on_frame = (pixel_x >= X_START && pixel_y >= Y_START &&
 							 pixel_x < X_START+OFFSET && pixel_y < Y_START+OFFSET);
 												 
-	always @(posedge vga_clk or negedge rst)  begin
-		if (!rst) begin
+	always @(posedge vga_clk or posedge rst)  begin
+		if (rst) begin
 			address <= 17'd324;
 		end
 		else begin

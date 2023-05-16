@@ -1,5 +1,4 @@
 sub r12, r12, r12
-addi r12, r12, 0x40
 addi r10, r12, 324
 addi r11, r0, 0x15F
 slli r11, r11, 8

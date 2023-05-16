@@ -1,7 +1,7 @@
 module cpu(
-    input  clk_50Mhz, 
+   input  clk_50Mhz, 
 	input  rst,
-    input  init,
+   input  init,
 	output h_sync,
 	output v_sync,
 	output vga_clk,
@@ -16,6 +16,9 @@ module cpu(
 	logic [9:0]  pixel_x;
 	logic [9:0]  pixel_y;
 	logic [16:0] address_vga;
+	
+	// CPU variable
+	logic cpu_clk;
 
 	clock_divider clk_divider(clk_50Mhz,clk);
 
@@ -29,9 +32,9 @@ module cpu(
 	end
 
 	processor pipeline_cpu (
-        .clk(cpu_clk),
+      .clk(cpu_clk),
 		.vga_clk(vga_clk),
-        .reset(reset),
+      .reset(!rst),
 		.address_vga(address_vga),
 		.color(color)
     );

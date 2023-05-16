@@ -375,22 +375,22 @@ module processor(
 	logic[7:0] RAM_out_odd;
 	logic[7:0] color_even;
 	logic[7:0] color_odd;
-	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/even_ram.mem") data_memory_even(
+	data_memory #(17,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/even_ram.mem") data_memory_even(
 		.clk(clk),
 		.clk_2(vga_clk),
 		.write_enable(mem_write_even),
 		.address(address_even),
-		.address_2(vga_address >> 1),
+		.address_2(address_vga >> 1),
 		.data_in(writeDataM),
 		.data_out(RAM_out_even),
 		.data_out_2(color_even)
 	);
-	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/odd_ram.mem") data_memory_odd(
+	data_memory #(17,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/odd_ram.mem") data_memory_odd(
 		.clk(clk),
 		.clk_2(vga_clk),
 		.write_enable(mem_write_odd),
 		.address(address_odd),
-		.address_2(vga_address >> 1),
+		.address_2(address_vga >> 1),
 		.data_in(writeDataM),
 		.data_out(RAM_out_odd),
 		.data_out_2(color_odd)
