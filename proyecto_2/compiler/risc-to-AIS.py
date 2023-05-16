@@ -1,28 +1,6 @@
 import sys
 import os
 
-conversion_table = {
-    "addi": "summare_immediatus",
-    "add": "summare",
-    "sub": "subtrahere",
-    "mul": "multiplicare",
-    "div": "dividere",
-    "remu": "modularizare",
-    "slli": "transferre_sinistra_immediatus",
-    "srli": "transferre_dextra_immediatus",
-    "sb": "conservare_ocho",
-    "lbu": "onerare_ocho_ss",
-    "lhu": "onerare_sedecim_ss",
-    "lh": "onerare_sedecim",
-    "jalr": "saltare_ligare_r",
-    "beq": "ramos_facere_aequalis",
-    "bne": "ramos_facere_no_aequalis",
-    "ble": "ramos_facere_minor_aequalis",
-    "blt": "ramos_facere_minor",
-    "lui": "onerare_ss_immediatus",
-    "jal": "saltare_ligare"
-}
-
 registers = {
     "zero":"r0",
     "ra":"r1",
@@ -64,7 +42,6 @@ def main():
 
     argv = sys.argv
     filename = argv[1]
-    risc_isa = conversion_table.keys()
     
     file_output = open(os.path.splitext(filename)[0] + '-AIS.asm', 'w')
 
@@ -77,10 +54,6 @@ def main():
                 if(line.find(register) != -1):
                     line = line.replace(register, registers[register])
 
-            for instruction in risc_isa:
-                if(line.find(instruction) != -1):
-                    line = line.replace(instruction, conversion_table[instruction])
-        
             file_output.write(line)
 
     file_output.close()
