@@ -2,7 +2,7 @@ module processor(
 	input logic clk,
 	input logic vga_clk,
 	input logic reset,
-	input logic[17:0] address_vga,
+	input logic[16:0] address_vga,
 	output logic[7:0] color
 );
 	//---------------- HAZARD SIGNALS---------------------------------
@@ -375,7 +375,7 @@ module processor(
 	logic[7:0] RAM_out_odd;
 	logic[7:0] color_even;
 	logic[7:0] color_odd;
-	data_memory #(17,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/even_ram.mem") data_memory_even(
+	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/even_ram.mem") data_memory_even(
 		.clk(clk),
 		.clk_2(vga_clk),
 		.write_enable(mem_write_even),
@@ -385,7 +385,7 @@ module processor(
 		.data_out(RAM_out_even),
 		.data_out_2(color_even)
 	);
-	data_memory #(17,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/odd_ram.mem") data_memory_odd(
+	data_memory #(16,8,"/home/jachm/Documents/Repos/achavarria_computer_architecture_1_2022/proyecto_2/microarchitecture/de1-soc/memory/odd_ram.mem") data_memory_odd(
 		.clk(clk),
 		.clk_2(vga_clk),
 		.write_enable(mem_write_odd),

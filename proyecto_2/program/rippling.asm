@@ -410,7 +410,7 @@ clean_img_1:
 	addi s2, s2, 1 # y += 1
 	blt s2, t1, for_y_clean
 
-	jalr zero, ra, 0
+	beq zero, zero, clean_img_1
 
 
 end:

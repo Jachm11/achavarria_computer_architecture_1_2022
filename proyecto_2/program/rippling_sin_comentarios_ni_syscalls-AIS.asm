@@ -188,6 +188,8 @@ remu r15, r15, r16
 beq r0, r0, mod_end
 nop
 negative_mod:
+sub r0, r0, r0
+sub r13, r13, r13
 addi r13, r0, 1
 mul r14, r13, r16            
 mod_N:
@@ -235,7 +237,7 @@ mul r13, r5, r18
 add r13, r13, r9
 add r13, r13, r11
 sb r0, 0(r13)
-addi r9, r9, 1
+addi r9, r9, 0
 blt r9, r5, for_x_clean
 nop
 addi r18, r18, 1

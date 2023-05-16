@@ -170,6 +170,8 @@ nop
 remu r15, r15, r16
 beq r0, r0, mod_end
 nop
+sub r0, r0, r0
+sub r13, r13, r13
 addi r13, r0, 1
 mul r14, r13, r16            
 blt r14, r15, mod_end_N
@@ -213,7 +215,7 @@ nop
 addi r18, r18, 1
 blt r18, r6, for_y_clean
 nop
-jalr r3, r1, 0
+beq r0, r0, clean_img_1
 nop
 add r13, r0, r10
 add r14, r0, r11
