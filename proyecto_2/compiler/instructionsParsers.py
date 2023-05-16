@@ -1,5 +1,5 @@
 
-from compiler.compiler import getOperation
+from compiler import getOperation
 from registers import *
 from utils import *
 
@@ -87,6 +87,11 @@ def parseDir01(instruction, metadata, labels, current_pc):
             rx = getEncodedRegister(result.group('register'))
             immediate = result.group('immediate')
             immediate = encodeImmediate(immediate, metadata['immediate_size'])
+
+            operation = getOperation(instruction)
+            if(operation == 'sb'):
+                return immediate + rd + rx
+            
             return immediate + rx + rd
 
         case "10":
