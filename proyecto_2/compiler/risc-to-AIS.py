@@ -54,6 +54,7 @@ def main():
                     line = line.replace(register, registers[register])
 
             file_output.write(line)
+            file_output.write("nop\nnop\n")
 
     file_output.close()
     file_in.close()

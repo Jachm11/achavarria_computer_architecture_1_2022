@@ -2,7 +2,7 @@ module processor(
 	input logic clk,
 	input logic vga_clk,
 	input logic reset,
-	input logic[16:0] address_vga,
+	input logic[17:0] address_vga,
 	output logic[7:0] color
 );
 	//---------------- HAZARD SIGNALS---------------------------------
@@ -45,7 +45,7 @@ module processor(
 	);
 
 	logic[31:0] instrF;
-	instruction_memory  #(9, 32) instruction_memory(
+	instruction_memory  #(10, 32) instruction_memory(
 		.address(PCF),
 		.read(instrF)
 	);

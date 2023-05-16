@@ -15,7 +15,7 @@ module cpu(
 	logic [7:0]  color;
 	logic [9:0]  pixel_x;
 	logic [9:0]  pixel_y;
-	logic [16:0] address_vga;
+	logic [17:0] address_vga;
 	
 	// CPU variable
 	logic cpu_clk;

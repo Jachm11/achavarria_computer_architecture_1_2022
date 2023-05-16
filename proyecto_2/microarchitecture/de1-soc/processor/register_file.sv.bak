@@ -16,18 +16,18 @@ module register_file #(parameter D=5, W=32)(
 	 integer i;
 	 
     initial begin
-        for (i = 1; i < (2**D); i = i + 1) begin
+        for (i = 0; i < (2**D); i = i + 1) begin
             register_file[i] <= 0;
         end
     end
 
     always_ff @(negedge clk) begin
-		  if(write_enable && address3 != 0) begin
+		  if(write_enable) begin
              register_file[address3] <= write_data;
         end
     end
 	 
-    assign read_data1 = (address1 != 0) ? register_file[address1] : {(W){1'b0}};
-    assign read_data2 = (address2 != 0) ? register_file[address2] : {(W){1'b0}};
+    assign read_data1 = register_file[address1];
+    assign read_data2 = register_file[address2];
 
 endmodule

@@ -8,7 +8,7 @@ module pixel_printer(
 	output logic [7:0] red,
 	output logic [7:0] green,
 	output logic [7:0] blue,
-	output logic [16:0] address
+	output logic [17:0] address
 );
 
 	//Frame constants
@@ -27,13 +27,13 @@ module pixel_printer(
 												 
 	always @(posedge vga_clk or posedge rst)  begin
 		if (rst) begin
-			address <= 17'd324;
+			address <= 18'd324;
 		end
 		else begin
 			if (on_frame) begin
-				address <= address + 17'd1;
+				address <= address + 18'd1;
 				if (address >= 90323) begin
-					address <= 17'd324;
+					address <= 18'd324;
 				end
 			end
 		end
