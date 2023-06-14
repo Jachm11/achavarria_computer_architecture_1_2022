@@ -1,0 +1,4 @@
+project: /home/sebastian/Documents/academia-collaboration/simics-project
+simics-root: /home/sebastian/Documents/arqui-proyecto-III/simics-6.0.166
+simics-model-builder: /home/sebastian/Documents/arqui-proyecto-III/simics-6.0.166
+mingw: None

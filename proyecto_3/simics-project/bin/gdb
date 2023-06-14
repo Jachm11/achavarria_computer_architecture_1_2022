@@ -1,0 +1,5 @@
+#!/bin/bash
+# this file will be overwritten by the project setup script
+SIMICS_BASE_PACKAGE="/home/sebastian/Documents/arqui-proyecto-III/simics-6.0.166"
+export SIMICS_BASE_PACKAGE
+exec "/home/sebastian/Documents/arqui-proyecto-III/simics-6.0.166/../simics-gdb-6.0.0/bin/gdb" --project "/home/sebastian/Documents/academia-collaboration/simics-project" "$@"
